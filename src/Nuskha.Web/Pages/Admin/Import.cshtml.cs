@@ -42,6 +42,20 @@ public class ImportModel(NuskhaDbContext db, BookSourceRegistry registry, Import
         return RedirectToPage();
     }
 
+    public SitemapJsonLdSource.PagePreview? Check { get; private set; }
+    [BindProperty(SupportsGet = false)] public string? CheckSource { get; set; }
+    [BindProperty(SupportsGet = false)] public string? CheckUrl { get; set; }
+
+    /// <summary>Fetches a single page from a site source (even a disabled one) and shows what the extractor would import.</summary>
+    public async Task<IActionResult> OnPostCheckAsync(CancellationToken ct)
+    {
+        Runs = await LoadRunsAsync(ct);
+        if (registry.Find(CheckSource ?? "") is not SitemapJsonLdSource site) { Errors[nameof(CheckSource)] = "val.required"; return Page(); }
+        if (string.IsNullOrWhiteSpace(CheckUrl)) { Errors[nameof(CheckUrl)] = "val.required"; return Page(); }
+        Check = await site.PreviewAsync(CheckUrl.Trim(), ct);
+        return Page();
+    }
+
     private Task<List<ImportRun>> LoadRunsAsync(CancellationToken ct) =>
         db.ImportRuns.AsNoTracking().OrderByDescending(r => r.StartedAt).Take(15).ToListAsync(ct);
 }

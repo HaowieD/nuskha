@@ -1,4 +1,5 @@
 @page "/admin/import"
+@using Nuskha.Infrastructure.Import
 @model Nuskha.Web.Pages.Admin.ImportModel
 @{ ViewData["Title"] = T["admin.import"]; }
 <div class="space-y-6">
@@ -48,6 +49,62 @@
             <div class="flex items-end"><button class="btn btn-primary w-full" type="submit">@T["admin.import.start"]</button></div>
         </form>
     </section>
+
+    @if (Model.Sources.OfType<SitemapJsonLdSource>().Any())
+    {
+        <section aria-labelledby="check-h">
+            <h2 id="check-h" class="mb-2 text-lg font-bold">@T["admin.import.check"]</h2>
+            <form method="post" asp-page-handler="Check" class="card grid gap-3 sm:grid-cols-[12rem_1fr_auto]">
+                <div>
+                    <label class="label" for="CheckSource">@T["admin.source"]</label>
+                    <select id="CheckSource" name="CheckSource" class="input" required>
+                        @foreach (var s in Model.Sources.OfType<SitemapJsonLdSource>())
+                        {
+                            <option value="@s.Id" selected="@(s.Id == Model.CheckSource)">@s.DisplayName</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="label" for="CheckUrl">@T["admin.import.check.url"]</label>
+                    <input id="CheckUrl" name="CheckUrl" type="url" value="@Model.CheckUrl" class="input" maxlength="500" required />
+                    <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "CheckUrl")' />
+                </div>
+                <div class="flex items-end"><button class="btn w-full" type="submit">@T["admin.import.check.go"]</button></div>
+                <p class="hint sm:col-span-3">@T["admin.import.check.hint"]</p>
+            </form>
+
+            @if (Model.Check is { } c)
+            {
+                <div class="card mt-3 space-y-1" role="status">
+                    @if (c.Status is { } code) { <p class="text-sm">@T["admin.import.check.status"]: <code>@code</code></p> }
+                    @if (c.ErrorKey is not null)
+                    {
+                        <p class="text-red-700" role="alert">@T[c.ErrorKey]</p>
+                    }
+                    else
+                    {
+                        <p class="text-sm">@T["admin.import.check.types"]: <code>@(c.JsonLdTypes.Count == 0 ? T["admin.import.check.none"] : string.Join(", ", c.JsonLdTypes))</code></p>
+                        @if (c.Book is { } b)
+                        {
+                            <p class="font-medium">@T["admin.import.check.found"]</p>
+                            <ul class="text-sm">
+                                <li><strong>@T["admin.import.check.title"]:</strong> @b.Title</li>
+                                <li><strong>@T["admin.import.check.authors"]:</strong> @(b.Authors.Count == 0 ? "—" : string.Join(", ", b.Authors))</li>
+                                <li><strong>ISBN:</strong> @(b.Isbn ?? "—")</li>
+                                <li><strong>@T["book.publisher"]:</strong> @(b.Publisher ?? "—")</li>
+                                <li><strong>@T["book.year"]:</strong> @(b.Year?.ToString() ?? "—")</li>
+                                <li><strong>@T["book.pages"]:</strong> @(b.Pages?.ToString() ?? "—")</li>
+                            </ul>
+                        }
+                        else
+                        {
+                            <p>@T["admin.import.check.nobook"]</p>
+                        }
+                    }
+                </div>
+            }
+        </section>
+    }
 
     <section aria-labelledby="runs-h">
         <h2 id="runs-h" class="mb-2 text-lg font-bold">@T["admin.import.runs"]</h2>

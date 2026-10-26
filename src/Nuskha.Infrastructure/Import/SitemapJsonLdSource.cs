@@ -60,6 +60,71 @@ public sealed class SitemapJsonLdSource(SiteOptions site, IHttpClientFactory htt
         }
     }
 
+    /// <summary>Outcome of <see cref="PreviewAsync"/>: what a single page would yield, for the admin "check a page" tool.</summary>
+    public sealed record PagePreview(string? ErrorKey, int? Status, ImportedBook? Book, IReadOnlyList<string> JsonLdTypes);
+
+    /// <summary>
+    /// Fetches one page of this site (obeying robots.txt) and reports what the extractor finds, so an admin can
+    /// judge whether the site is usable before enabling a crawl. Only URLs on the configured host are fetched.
+    /// </summary>
+    public async Task<PagePreview> PreviewAsync(string url, CancellationToken ct)
+    {
+        var baseUri = new Uri(site.BaseUrl);
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https")
+            || !string.Equals(uri.Host, baseUri.Host, StringComparison.OrdinalIgnoreCase))
+            return new("admin.import.check.host", null, null, []);
+
+        var client = http.CreateClient("import");
+        try
+        {
+            var robots = await LoadRobotsAsync(client, baseUri, ct);
+            if (!robots.IsAllowed(uri.PathAndQuery)) return new("admin.import.check.robots", null, null, []);
+
+            using var resp = await client.GetAsync(uri, ct);
+            var status = (int)resp.StatusCode;
+            // A redirect to another host must not be read: the check is only meant for the site's own pages.
+            if (!string.Equals(resp.RequestMessage?.RequestUri?.Host, baseUri.Host, StringComparison.OrdinalIgnoreCase))
+                return new("admin.import.check.host", status, null, []);
+            if (!resp.IsSuccessStatusCode) return new("admin.import.check.fetch", status, null, []);
+
+            var html = await resp.Content.ReadAsStringAsync(ct);
+            return new(null, status, Extract(html, uri.ToString()), ListJsonLdTypes(html));
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or InvalidOperationException)
+        {
+            return new("admin.import.check.fetch", null, null, []);
+        }
+    }
+
+    private static List<string> ListJsonLdTypes(string html)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+        var types = new HashSet<string>();
+        void Collect(JsonElement e)
+        {
+            if (e.ValueKind == JsonValueKind.Array) { foreach (var x in e.EnumerateArray()) Collect(x); return; }
+            if (e.ValueKind != JsonValueKind.Object) return;
+            if (e.TryGetProperty("@type", out var t))
+            {
+                if (t.ValueKind == JsonValueKind.String && t.GetString() is { } one) types.Add(one);
+                else if (t.ValueKind == JsonValueKind.Array)
+                    foreach (var x in t.EnumerateArray()) if (x.GetString() is { } many) types.Add(many);
+            }
+            if (e.TryGetProperty("@graph", out var g)) Collect(g);
+        }
+        foreach (var node in doc.DocumentNode.SelectNodes("//script[@type='application/ld+json']") ?? Enumerable.Empty<HtmlNode>())
+        {
+            try
+            {
+                using var j = JsonDocument.Parse(WebUtility.HtmlDecode(node.InnerText.Trim()));
+                Collect(j.RootElement);
+            }
+            catch (JsonException) { /* malformed block: ignore */ }
+        }
+        return types.Order().ToList();
+    }
+
     private async Task<RobotsRules> LoadRobotsAsync(HttpClient client, Uri baseUri, CancellationToken ct)
     {
         using var resp = await client.GetAsync(new Uri(baseUri, "/robots.txt"), ct);
