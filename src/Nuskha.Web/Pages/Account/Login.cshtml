@@ -7,6 +7,10 @@
     @if (Model.Message is not null)
     {
         <p class="card border-red-700 text-red-700" role="alert">@T[Model.Message]</p>
+        @if (Model.Message == "auth.unconfirmed")
+        {
+            <p class="text-sm"><a class="link" asp-page="/Account/ResendConfirmation">@T["auth.resend"]</a></p>
+        }
     }
 
     <form method="post" class="card space-y-3">
@@ -24,6 +28,10 @@
             <input type="checkbox" name="RememberMe" value="true" checked="@Model.RememberMe" /> @T["auth.remember"]
         </label>
         <button class="btn btn-primary w-full" type="submit">@T["auth.login"]</button>
+        @if (Model.EmailEnabled)
+        {
+            <p class="text-center text-sm"><a class="link" asp-page="/Account/ForgotPassword">@T["auth.forgot"]</a></p>
+        }
     </form>
 
     @if (Model.GoogleEnabled)

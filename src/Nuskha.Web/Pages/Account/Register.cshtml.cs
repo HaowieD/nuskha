@@ -3,7 +3,7 @@ using System.Net.Mail;
 namespace Nuskha.Web.Pages.Account;
 
 [EnableRateLimiting("auth")]
-public class RegisterModel(UserManager<AppUser> users, SignInManager<AppUser> signIn, GoogleAuthState google) : AppPageModel
+public class RegisterModel(UserManager<AppUser> users, SignInManager<AppUser> signIn, GoogleAuthState google, AccountEmails emails) : AppPageModel
 {
     [BindProperty] public string? UserName { get; set; }
     [BindProperty] public string? Email { get; set; }
@@ -16,7 +16,7 @@ public class RegisterModel(UserManager<AppUser> users, SignInManager<AppUser> si
 
     public IActionResult OnGet() => IsLoggedIn ? LocalRedirect(SafeReturnUrl(ReturnUrl)) : Page();
 
-    public async Task<IActionResult> OnPostAsync()
+    public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
         UserName = UserName?.Trim();
         Email = Email?.Trim();
@@ -44,6 +44,16 @@ public class RegisterModel(UserManager<AppUser> users, SignInManager<AppUser> si
         }
 
         await users.AddToRoleAsync(user, Roles.User);
+
+        if (emails.Enabled)
+        {
+            // Sign-in is blocked until the address is confirmed, so send the mail and point to the login page.
+            var token = await users.GenerateEmailConfirmationTokenAsync(user);
+            var sent = await emails.SendConfirmationAsync(user, token, ct);
+            TempData["Flash"] = sent ? "auth.confirm.sent" : "auth.confirm.failed";
+            return RedirectToPage("/Account/Login", new { returnUrl = SafeReturnUrl(ReturnUrl) });
+        }
+
         await signIn.SignInAsync(user, isPersistent: true);
         return LocalRedirect(SafeReturnUrl(ReturnUrl));
     }

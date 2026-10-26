@@ -1,0 +1,25 @@
+@page "/account/resend-confirmation"
+@model Nuskha.Web.Pages.Account.ResendConfirmationModel
+@{ ViewData["Title"] = T["auth.resend.title"]; }
+<div class="mx-auto max-w-md space-y-4">
+    <h1 class="text-2xl font-bold">@T["auth.resend.title"]</h1>
+    @if (!Model.EmailEnabled)
+    {
+        <p class="card" role="status">@T["auth.mail.unavailable"]</p>
+    }
+    else if (Model.Sent)
+    {
+        <p class="card" role="status">@T["auth.resend.sent"]</p>
+    }
+    else
+    {
+        <form method="post" class="card space-y-3">
+            <div>
+                <label class="label" for="Email">@T["auth.email"]</label>
+                <input id="Email" name="Email" type="email" value="@Model.Email" class="input" autocomplete="email" required />
+                <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Email")' />
+            </div>
+            <button class="btn btn-primary w-full" type="submit">@T["auth.forgot.send"]</button>
+        </form>
+    }
+</div>

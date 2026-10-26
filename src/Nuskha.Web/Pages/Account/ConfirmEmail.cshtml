@@ -1,0 +1,16 @@
+@page "/account/confirm-email"
+@model Nuskha.Web.Pages.Account.ConfirmEmailModel
+@{ ViewData["Title"] = T["auth.confirm.title"]; }
+<div class="mx-auto max-w-md space-y-4">
+    <h1 class="text-2xl font-bold">@T["auth.confirm.title"]</h1>
+    @if (Model.Success)
+    {
+        <p class="card" role="status">@T["auth.confirm.ok"]</p>
+        <a class="btn btn-primary" asp-page="/Account/Login">@T["auth.login"]</a>
+    }
+    else
+    {
+        <p class="card border-red-700 text-red-700" role="alert">@T["auth.link.invalid"]</p>
+        <a class="link" asp-page="/Account/ResendConfirmation">@T["auth.resend"]</a>
+    }
+</div>

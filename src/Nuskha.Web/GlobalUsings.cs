@@ -10,3 +10,4 @@ global using Nuskha.Infrastructure.Data;
 global using Nuskha.Infrastructure.Services;
 global using Nuskha.Web.Models;
 global using Nuskha.Web.Services;
+global using Nuskha.Web.Services.Email;

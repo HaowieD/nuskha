@@ -84,6 +84,16 @@ Later model changes: `dotnet ef migrations add <Name> -p src/Nuskha.Infrastructu
 
 A Google sign-in creates an account (username derived from the e-mail, e-mail marked confirmed). If a **password** account with the same e-mail already exists and its e-mail is not confirmed, Google sign-in is refused on purpose — otherwise someone could pre-register another person's address and keep access after the real owner signs in with Google.
 
+## E-mail
+
+Set `Email__Host`, `Email__From` (and usually `Email__UserName` / `Email__Password`; see `.env.example`) to any SMTP server — a transactional provider such as Brevo, Mailgun or Amazon SES, or your own relay. Once configured:
+
+* new password accounts must confirm their address before they can sign in (Google accounts count as confirmed);
+* `/account/forgot-password` and `/account/resend-confirmation` work; links are valid for 24 hours;
+* links in mails are built from `Site__BaseUrl`, not the request's Host header — keep it correct.
+
+Without SMTP the site behaves as before: registration signs in immediately and password reset is unavailable. **Turning e-mail on later** makes existing unconfirmed password accounts confirm their address on next sign-in (they can use "Resend confirmation"). Set up SPF/DKIM for your sending domain or mails will land in spam.
+
 ## Deploy on Proxmox (Docker Compose)
 
 1. Create a Debian/Ubuntu VM or a privileged LXC with nesting enabled, install Docker.
@@ -110,7 +120,7 @@ The two Georgian shops are wired as generic sitemap + JSON-LD sources (`SitemapJ
 
 ## Known gaps
 
-* **No e-mail sending** — so no e-mail confirmation and no "forgot password" yet. Add an `IEmailSender` (SMTP or a transactional provider) and turn on `RequireConfirmedEmail`.
+* Changing the e-mail address of an account is not possible yet.
 * No post/comment editing (delete only), no private messages, no genre/tag taxonomy yet.
 * Georgian fonts are loaded from Google Fonts; self-host them if that is a privacy concern.
 * Rate limiting covers sign-in/registration and the social endpoints (likes, comments, follows), plus book submission, new threads, settings and reports; saving a list entry and replying in a forum thread are not yet rate limited.

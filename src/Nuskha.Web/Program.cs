@@ -19,6 +19,13 @@ var config = builder.Configuration;
 // ---- Data & domain services ----
 builder.Services.AddNuskhaInfrastructure(config);
 
+// ---- E-mail (optional) ----
+// When SMTP is configured, new password accounts must confirm their address before signing in.
+builder.Services.Configure<EmailOptions>(config.GetSection("Email"));
+builder.Services.AddSingleton<IAppEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<AccountEmails>();
+var emailEnabled = (config.GetSection("Email").Get<EmailOptions>() ?? new()).Enabled;
+
 // ---- Identity ----
 builder.Services.AddIdentity<AppUser, AppRole>(o =>
 {
@@ -30,9 +37,11 @@ builder.Services.AddIdentity<AppUser, AppRole>(o =>
     o.Lockout.MaxFailedAccessAttempts = 8;
     o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
     o.Lockout.AllowedForNewUsers = true;
+    o.SignIn.RequireConfirmedEmail = emailEnabled;
 })
 .AddEntityFrameworkStores<NuskhaDbContext>()
 .AddDefaultTokenProviders();
+builder.Services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromHours(24));
 
 // Role changes made in the admin panel should reach already-signed-in users quickly.
 builder.Services.Configure<SecurityStampValidatorOptions>(o => o.ValidationInterval = TimeSpan.FromMinutes(1));

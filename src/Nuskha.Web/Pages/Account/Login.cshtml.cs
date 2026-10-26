@@ -1,7 +1,7 @@
 namespace Nuskha.Web.Pages.Account;
 
 [EnableRateLimiting("auth")]
-public class LoginModel(SignInManager<AppUser> signIn, UserManager<AppUser> users, GoogleAuthState google) : AppPageModel
+public class LoginModel(SignInManager<AppUser> signIn, UserManager<AppUser> users, GoogleAuthState google, AccountEmails emails) : AppPageModel
 {
     [BindProperty] public string? Login { get; set; }
     [BindProperty] public string? Password { get; set; }
@@ -10,6 +10,7 @@ public class LoginModel(SignInManager<AppUser> signIn, UserManager<AppUser> user
     [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
 
     public bool GoogleEnabled => google.Enabled;
+    public bool EmailEnabled => emails.Enabled;
     /// <summary>Localization key of an error to show above the form.</summary>
     public string? Message { get; private set; }
 
@@ -40,7 +41,7 @@ public class LoginModel(SignInManager<AppUser> signIn, UserManager<AppUser> user
         var result = await signIn.PasswordSignInAsync(user, Password, RememberMe, lockoutOnFailure: true);
         if (result.Succeeded) return LocalRedirect(SafeReturnUrl(ReturnUrl));
 
-        Message = result.IsLockedOut ? "auth.locked" : "auth.invalid";
+        Message = result.IsLockedOut ? "auth.locked" : result.IsNotAllowed ? "auth.unconfirmed" : "auth.invalid";
         return Page();
     }
 }

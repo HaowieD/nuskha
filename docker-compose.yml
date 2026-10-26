@@ -34,6 +34,12 @@ services:
       Seed__AdminUserName: ${ADMIN_USERNAME:-admin}
       Seed__AdminEmail: ${ADMIN_EMAIL:-}
       Seed__AdminPassword: ${ADMIN_PASSWORD:-}
+      Email__Host: ${SMTP_HOST:-}
+      Email__Port: ${SMTP_PORT:-587}
+      Email__ImplicitTls: ${SMTP_IMPLICIT_TLS:-false}
+      Email__UserName: ${SMTP_USER:-}
+      Email__Password: ${SMTP_PASSWORD:-}
+      Email__From: ${SMTP_FROM:-}
       Authentication__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
       Authentication__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET:-}
 
