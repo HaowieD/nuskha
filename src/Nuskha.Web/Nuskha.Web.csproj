@@ -8,6 +8,7 @@
     <ProjectReference Include="..\Nuskha.Infrastructure\Nuskha.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Localization\*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- The Web SDK already globs *.json as Content; Update (not Include) avoids a duplicate-item error. -->
+    <Content Update="Localization\*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
