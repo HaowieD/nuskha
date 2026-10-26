@@ -74,13 +74,7 @@ While the consent screen is in "Testing" mode only the test users you list can s
 
 ### A6. Optional: e-mail locally
 
-Without SMTP nothing is sent and registration signs people in immediately. To try confirmation/reset mails use a catch-all test inbox such as [Mailpit](https://mailpit.axllent.org):
-
-```bash
-docker run -d --name mailpit -p 8025:8025 -p 1025:1025 axllent/mailpit
-```
-
-Mailpit speaks plain SMTP without TLS, which the app's STARTTLS/TLS-only sender will not use, so for real tests use a provider (Brevo, Mailgun, SES, your own mail server):
+Without SMTP nothing is sent and registration signs people in immediately, which is fine for development. To try the confirmation and reset mails you need a real SMTP server that supports STARTTLS (port 587) or TLS (port 465, also set `Email:ImplicitTls` to `true`), such as Brevo, Mailgun, Amazon SES or your own mail server. Local catch-all tools like Mailpit use unencrypted SMTP and will not work.
 
 ```bash
 dotnet user-secrets set "Email:Host" "smtp.example.com"
@@ -162,7 +156,7 @@ printf 'nuskha.ge {\n    reverse_proxy localhost:8080\n}\n' | sudo tee /etc/cadd
 sudo systemctl reload caddy
 ```
 
-**Option 3: Nginx Proxy Manager** or Traefik if you already run one: proxy to `http://<vm-ip>:8080` and enable WebSockets off, SSL on.
+**Option 3: Nginx Proxy Manager** or Traefik if you already run one: create a proxy host for your domain pointing at `http://<vm-ip>:8080` and request a Let's Encrypt certificate there.
 
 If the proxy runs on the same VM, change the port line in `docker-compose.yml` to `"127.0.0.1:8080:8080"` so only the proxy can reach the app, then `docker compose up -d`.
 
