@@ -4,6 +4,8 @@ Social reading lists for Georgian books — think AniList, but for books. Reader
 
 > **Status: first scaffold.** The code has been written but had **not been compiled** when it was committed (the authoring environment had no .NET SDK). Push it and let GitHub Actions build it; expect a few compile fixes on the first run.
 
+> **New here?** Step-by-step installation for your own computer and for a Proxmox server: [docs/INSTALL.md](docs/INSTALL.md).
+
 ## Stack
 
 | Layer | Choice |
