@@ -1,0 +1,14 @@
+@model AvatarModel
+@{
+    var initial = string.IsNullOrWhiteSpace(Model.Name) ? "?" : Model.Name.Trim()[..1].ToUpperInvariant();
+}
+<span class="@("avatar avatar-" + Model.Size)">
+    @if (!string.IsNullOrEmpty(Model.Path))
+    {
+        <img src="/uploads/@Model.Path" alt="" loading="lazy" />
+    }
+    else
+    {
+        <span aria-hidden="true">@initial</span>
+    }
+</span>

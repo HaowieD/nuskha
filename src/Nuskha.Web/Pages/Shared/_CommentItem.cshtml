@@ -1,0 +1,48 @@
+@model CommentItemModel
+@{
+    var c = Model.Comment;
+    var thread = Model.Thread;
+    var dom = thread.DomId;
+}
+<div id="@("comment-" + c.Id)" class="@(Model.IsReply ? "ml-8 border-l-2 border-line pl-3" : "")">
+    <div class="flex items-start gap-3">
+        <partial name="_Avatar" model='new AvatarModel(c.AvatarPath, c.DisplayName, "sm")' />
+        <div class="min-w-0 flex-1">
+            <div class="text-sm">
+                <a class="font-semibold no-underline hover:text-accent" href="/user/@c.UserName">@c.DisplayName</a>
+                <span class="hint">@@@c.UserName · <time datetime="@c.CreatedAt.ToString("o")">@T.TimeAgo(c.CreatedAt)</time></span>
+            </div>
+            <p class="whitespace-pre-line break-words text-sm">@c.Body</p>
+            <div class="mt-1 flex flex-wrap items-center gap-2">
+                <partial name="_LikeButton" model="new LikeButtonModel(TargetType.Comment, c.Id, c.LikeCount, c.Liked)" />
+                @if (thread.ViewerId is not null)
+                {
+                    <details>
+                        <summary class="cursor-pointer text-xs text-soft hover:text-accent">@T["comments.reply"]</summary>
+                        <form hx-post="/social/comments?handler=Add" hx-target="#@dom" hx-swap="outerHTML" class="mt-2 space-y-2">
+                            <input type="hidden" name="type" value="@((int)thread.Type)" />
+                            <input type="hidden" name="id" value="@thread.TargetId" />
+                            <input type="hidden" name="parentId" value="@c.Id" />
+                            <label class="sr-only" for="@("reply-" + c.Id)">@T["comments.reply"]</label>
+                            <textarea id="@("reply-" + c.Id)" name="body" rows="2" maxlength="2000" required class="input"></textarea>
+                            <button type="submit" class="btn btn-primary btn-sm">@T["comments.post"]</button>
+                        </form>
+                    </details>
+                }
+                @if (thread.ViewerId == c.AuthorId || thread.IsModerator)
+                {
+                    <form hx-post="/social/comments?handler=Delete" hx-target="#@dom" hx-swap="outerHTML" hx-confirm="@T["common.confirm"]" class="inline">
+                        <input type="hidden" name="type" value="@((int)thread.Type)" />
+                        <input type="hidden" name="id" value="@thread.TargetId" />
+                        <input type="hidden" name="commentId" value="@c.Id" />
+                        <button type="submit" class="text-xs text-soft hover:text-red-700">@T["common.delete"]</button>
+                    </form>
+                }
+                @if (thread.ViewerId is not null && thread.ViewerId != c.AuthorId)
+                {
+                    <a class="text-xs text-soft no-underline hover:text-accent" href="/report?type=@((int)TargetType.Comment)&id=@c.Id">@T["report.link"]</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

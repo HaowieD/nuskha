@@ -1,0 +1,16 @@
+@model PagerModel
+@if (Model.TotalPages > 1)
+{
+    string Link(int p)
+    {
+        var parts = Context.Request.Query.Where(kv => kv.Key != "p")
+            .Select(kv => Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(kv.Value.ToString())).ToList();
+        parts.Add("p=" + p);
+        return Context.Request.Path.Value + "?" + string.Join("&", parts);
+    }
+    <nav aria-label="@T["common.pagination"]" class="flex items-center justify-center gap-3 py-4 text-sm">
+        @if (Model.Page > 1) { <a class="btn btn-sm" href="@Link(Model.Page - 1)" rel="prev">← @T["common.prev"]</a> }
+        <span aria-current="page">@Model.Page / @Model.TotalPages</span>
+        @if (Model.Page < Model.TotalPages) { <a class="btn btn-sm" href="@Link(Model.Page + 1)" rel="next">@T["common.next"] →</a> }
+    </nav>
+}

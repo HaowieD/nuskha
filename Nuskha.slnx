@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Nuskha.Domain/Nuskha.Domain.csproj" />
+    <Project Path="src/Nuskha.Infrastructure/Nuskha.Infrastructure.csproj" />
+    <Project Path="src/Nuskha.Web/Nuskha.Web.csproj" />
+  </Folder>
+</Solution>

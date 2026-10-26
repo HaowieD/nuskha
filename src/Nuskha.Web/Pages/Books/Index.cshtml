@@ -1,0 +1,41 @@
+@page "/books"
+@model Nuskha.Web.Pages.Books.IndexModel
+@{ ViewData["Title"] = T["books.title"]; }
+<div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <h1 class="text-2xl font-bold">@T["books.title"]</h1>
+    @if (User.Identity!.IsAuthenticated)
+    {
+        <a class="btn btn-primary" href="/books/submit">@T["books.submit"]</a>
+    }
+</div>
+
+<form method="get" role="search" class="card mb-6 grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
+    <div>
+        <label class="label" for="q">@T["books.search"]</label>
+        <input id="q" name="q" type="search" value="@Model.Q" class="input" placeholder="@T["books.search.hint"]" />
+    </div>
+    <div>
+        <label class="label" for="sort">@T["books.sort"]</label>
+        <select id="sort" name="sort" class="input">
+            <option value="popular" selected="@(Model.Sort is null or "popular")">@T["sort.popular"]</option>
+            <option value="new" selected="@(Model.Sort == "new")">@T["sort.new"]</option>
+            <option value="rating" selected="@(Model.Sort == "rating")">@T["sort.rating"]</option>
+            <option value="title" selected="@(Model.Sort == "title")">@T["sort.title"]</option>
+        </select>
+    </div>
+    <div class="flex items-end"><button class="btn btn-primary w-full" type="submit">@T["common.search"]</button></div>
+</form>
+
+<p class="mb-3 text-sm text-soft" aria-live="polite">@T.Format("books.count", Model.Total)</p>
+
+@if (Model.Books.Count == 0)
+{
+    <p class="card text-soft">@T["books.empty"]</p>
+}
+else
+{
+    <div class="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        @foreach (var b in Model.Books) { <partial name="_BookCard" model="b" /> }
+    </div>
+    <partial name="_Pager" model="new PagerModel(Model.PageNo, Model.TotalPages)" />
+}

@@ -1,0 +1,23 @@
+@model BookListItem
+@{
+    var title = T.IsEnglish && !string.IsNullOrWhiteSpace(Model.TitleEn) ? Model.TitleEn : Model.Title;
+    var authors = string.Join(", ", Model.Authors.Select(a => T.Pick(a.Name, a.NameEn)));
+}
+<a href="/books/@Model.Slug" class="group block no-underline">
+    <div class="@("cover cover-" + WebExtensions.CoverBucket(Model.Slug))">
+        @if (!string.IsNullOrEmpty(Model.CoverPath))
+        {
+            <img src="/uploads/@Model.CoverPath" alt="" loading="lazy" />
+        }
+        else
+        {
+            <span class="relative">@title</span>
+        }
+    </div>
+    <div class="mt-2 text-sm font-medium leading-snug group-hover:text-accent">@title</div>
+    <div class="hint">@authors</div>
+    @if (Model.Average is double avg)
+    {
+        <div class="hint"><span aria-hidden="true">★</span> @avg.ToString("0.0") <span class="sr-only">/ 10</span></div>
+    }
+</a>

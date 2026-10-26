@@ -1,0 +1,10 @@
+@model LikeButtonModel
+<form hx-post="/social/like" hx-target="this" hx-swap="outerHTML" class="inline">
+    <input type="hidden" name="type" value="@((int)Model.Type)" />
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="@("btn btn-sm " + (Model.Liked ? "border-accent text-accent" : ""))" aria-pressed="@(Model.Liked ? "true" : "false")" title="@T["like.title"]">
+        <span aria-hidden="true">@(Model.Liked ? "♥" : "♡")</span>
+        <span class="sr-only">@T["like.title"]</span>
+        <span>@Model.Count</span>
+    </button>
+</form>

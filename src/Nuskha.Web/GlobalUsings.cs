@@ -1,0 +1,12 @@
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Mvc.RazorPages;
+global using Microsoft.AspNetCore.RateLimiting;
+global using Microsoft.EntityFrameworkCore;
+global using Nuskha.Domain;
+global using Nuskha.Domain.Entities;
+global using Nuskha.Infrastructure.Data;
+global using Nuskha.Infrastructure.Services;
+global using Nuskha.Web.Models;
+global using Nuskha.Web.Services;

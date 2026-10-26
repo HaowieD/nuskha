@@ -1,0 +1,89 @@
+@import "tailwindcss";
+@source "../Pages";
+
+/* Nuskha ("ნუსხა" = a manuscript copy): warm paper, ink, and a wine-red accent. */
+:root {
+  --paper: #f6f1e7;
+  --paper-2: #efe8d8;
+  --card: #fffdf8;
+  --ink: #231f1a;
+  --ink-soft: #5f574b;
+  --line: #ded4bf;
+  --accent: #8c2f39;
+  --accent-ink: #ffffff;
+  --accent-soft: #f0dcdc;
+  --ok: #2f6b4f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #17140f;
+    --paper-2: #1f1b14;
+    --card: #221d16;
+    --ink: #f1eadb;
+    --ink-soft: #b3a995;
+    --line: #3a3326;
+    --accent: #d9737d;
+    --accent-ink: #1a0f10;
+    --accent-soft: #3a2024;
+    --ok: #6fbf97;
+  }
+}
+
+@theme {
+  --color-paper: var(--paper);
+  --color-paper2: var(--paper-2);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accentink: var(--accent-ink);
+  --color-accentsoft: var(--accent-soft);
+  --color-ok: var(--ok);
+  --font-sans: "Noto Sans Georgian", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Noto Serif Georgian", ui-serif, Georgia, serif;
+}
+
+@layer base {
+  html { background: var(--paper); color: var(--ink); font-family: var(--font-sans); }
+  body { min-height: 100vh; }
+  h1, h2, h3 { font-family: var(--font-serif); letter-spacing: -0.01em; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+}
+
+@layer components {
+  .wrap { @apply mx-auto w-full max-w-6xl px-4; }
+  .card { @apply rounded-xl border border-line bg-card p-4; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-card px-3.5 py-2 text-sm font-medium text-ink no-underline transition hover:border-accent hover:text-accent cursor-pointer; }
+  .btn-primary { @apply border-accent bg-accent text-accentink hover:text-accentink hover:opacity-90; }
+  .btn-danger { @apply border-red-700 text-red-700 hover:bg-red-700 hover:text-white; }
+  .btn-sm { @apply px-2.5 py-1 text-xs; }
+  .input { @apply w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink placeholder:text-soft; }
+  .label { @apply mb-1 block text-sm font-medium; }
+  .hint { @apply text-xs text-soft; }
+  .chip { @apply inline-flex items-center rounded-full bg-accentsoft px-2.5 py-0.5 text-xs font-medium text-accent; }
+  .link { @apply text-accent underline-offset-2 hover:underline; }
+  .field-error { @apply text-sm text-red-700; }
+  .table-simple { @apply w-full text-left text-sm; }
+  .table-simple th { @apply border-b border-line px-3 py-2 font-semibold text-soft; }
+  .table-simple td { @apply border-b border-line px-3 py-2 align-top; }
+
+  .avatar { @apply inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-accentsoft font-semibold text-accent; }
+  .avatar img { @apply h-full w-full object-cover; }
+  .avatar-sm { @apply h-8 w-8 text-xs; }
+  .avatar-md { @apply h-10 w-10 text-sm; }
+  .avatar-lg { @apply h-24 w-24 text-3xl; }
+
+  /* Cover placeholders: 8 deterministic tones, no inline styles (CSP). */
+  .cover { @apply relative flex aspect-[2/3] w-full items-end overflow-hidden rounded-md border border-line p-2 font-serif text-xs font-semibold leading-tight text-white; }
+  .cover img { @apply absolute inset-0 h-full w-full object-cover; }
+  .cover-0 { background: #7a2e3b; } .cover-1 { background: #2f5d62; } .cover-2 { background: #5b4a8a; }
+  .cover-3 { background: #8a6a2f; } .cover-4 { background: #3d6b43; } .cover-5 { background: #8a4a2f; }
+  .cover-6 { background: #3a4f7a; } .cover-7 { background: #5f5a52; }
+
+  /* htmx: we disabled its injected <style>, so provide the indicator rules ourselves. */
+  .htmx-indicator { opacity: 0; transition: opacity 150ms; }
+  .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }
+  .htmx-request { opacity: .75; }
+}

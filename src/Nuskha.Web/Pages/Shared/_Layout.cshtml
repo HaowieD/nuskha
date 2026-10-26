@@ -1,0 +1,64 @@
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Xsrf
+@{
+    var title = ViewData["Title"] as string;
+    var description = ViewData["Description"] as string;
+    var token = Xsrf.GetAndStoreTokens(Context).RequestToken;
+    var returnUrl = Uri.EscapeDataString(Context.Request.Path.Value + Context.Request.QueryString.Value);
+}
+<!DOCTYPE html>
+<html lang="@T.Lang">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(string.IsNullOrEmpty(title) ? "Nuskha · ნუსხა" : title + " · Nuskha")</title>
+    <meta name="description" content="@(description ?? T["site.tagline"])" />
+    <meta name="htmx-config" content='{"includeIndicatorStyles":false,"allowEval":false}' />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600&family=Noto+Serif+Georgian:wght@500;700&display=swap" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <script src="~/lib/htmx.min.js" defer></script>
+    <script src="~/js/app.js" defer></script>
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body hx-headers='{"RequestVerificationToken":"@token"}'>
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-card focus:p-2">@T["nav.skip"]</a>
+
+    <header class="border-b border-line bg-card">
+        <div class="wrap flex flex-wrap items-center gap-x-6 gap-y-2 py-3">
+            <a href="/" class="font-serif text-2xl font-bold text-accent no-underline" aria-label="Nuskha">Nuskha<span class="text-soft">.ge</span></a>
+            <nav aria-label="@T["nav.main"]" class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium">
+                <a href="/books" class="no-underline hover:text-accent">@T["nav.books"]</a>
+                <a href="/authors" class="no-underline hover:text-accent">@T["nav.authors"]</a>
+                <a href="/forum" class="no-underline hover:text-accent">@T["nav.forum"]</a>
+                <a href="/users" class="no-underline hover:text-accent">@T["nav.users"]</a>
+            </nav>
+            <form action="/books" method="get" role="search" class="order-last w-full sm:order-none sm:ml-auto sm:w-64">
+                <label for="nav-q" class="sr-only">@T["nav.search"]</label>
+                <input id="nav-q" name="q" type="search" class="input" placeholder="@T["nav.search"]" />
+            </form>
+            <div class="flex items-center gap-3 text-sm">
+                <a href="/culture/ka?returnUrl=@returnUrl" lang="ka" class="@(T.Lang == "ka" ? "font-bold text-accent" : "text-soft") no-underline" aria-label="ქართული">KA</a>
+                <a href="/culture/en?returnUrl=@returnUrl" lang="en" class="@(T.Lang == "en" ? "font-bold text-accent" : "text-soft") no-underline" aria-label="English">EN</a>
+                @await Component.InvokeAsync("NavUser")
+            </div>
+        </div>
+    </header>
+
+    <main id="main" class="wrap py-6">
+        @RenderBody()
+    </main>
+
+    <div id="toast" role="alert" class="hidden fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-ink px-4 py-2 text-sm text-paper"
+         data-msg-error="@T["common.error"]" data-msg-429="@T["common.toomany"]"></div>
+
+    <footer class="mt-10 border-t border-line py-6 text-sm text-soft">
+        <div class="wrap flex flex-wrap items-center justify-between gap-2">
+            <span>© @DateTime.UtcNow.Year Nuskha.ge — @T["site.tagline"]</span>
+            <a href="/sitemap.xml" class="no-underline hover:text-accent">Sitemap</a>
+        </div>
+    </footer>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,8 @@
+@page "/Error"
+@model Nuskha.Web.Pages.ErrorModel
+@{ ViewData["Title"] = T["error.title"]; }
+<div class="mx-auto max-w-lg space-y-4 py-16 text-center">
+    <p class="font-serif text-6xl font-bold text-accent">@Model.Code</p>
+    <h1 class="text-2xl font-bold">@(Model.Code == 404 ? T["error.404"] : Model.Code == 403 ? T["error.403"] : T["error.500"])</h1>
+    <a class="btn btn-primary" href="/">@T["error.home"]</a>
+</div>

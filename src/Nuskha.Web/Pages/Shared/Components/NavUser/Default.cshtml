@@ -1,0 +1,34 @@
+@model Nuskha.Web.ViewComponents.NavUserVm
+@if (!Model.IsAuthenticated)
+{
+    <a href="/account/login" class="btn btn-sm">@T["auth.login"]</a>
+    <a href="/account/register" class="btn btn-sm btn-primary">@T["auth.register"]</a>
+}
+else
+{
+    <a href="/notifications" class="relative no-underline" aria-label="@T["nav.notifications"]">
+        <span aria-hidden="true">🔔</span>
+        @if (Model.Unread > 0)
+        {
+            <span class="absolute -right-2 -top-2 rounded-full bg-accent px-1.5 text-[10px] font-bold text-accentink">@Model.Unread</span>
+        }
+    </a>
+    @if (Model.IsStaff)
+    {
+        <a href="/admin" class="chip no-underline">@T["nav.admin"]</a>
+    }
+    <details class="relative">
+        <summary class="flex cursor-pointer list-none items-center gap-2">
+            <partial name="_Avatar" model='new AvatarModel(Model.AvatarPath, Model.DisplayName ?? Model.UserName ?? "?", "sm")' />
+            <span class="hidden sm:inline">@Model.UserName</span>
+        </summary>
+        <div class="absolute right-0 z-40 mt-2 w-48 rounded-lg border border-line bg-card p-1 shadow-lg">
+            <a class="block rounded px-3 py-2 no-underline hover:bg-paper2" href="/user/@Model.UserName">@T["nav.profile"]</a>
+            <a class="block rounded px-3 py-2 no-underline hover:bg-paper2" href="/user/@Model.UserName/list">@T["nav.mylist"]</a>
+            <a class="block rounded px-3 py-2 no-underline hover:bg-paper2" href="/settings">@T["nav.settings"]</a>
+            <form method="post" action="/account/logout">
+                <button type="submit" class="block w-full rounded px-3 py-2 text-left hover:bg-paper2">@T["auth.logout"]</button>
+            </form>
+        </div>
+    </details>
+}

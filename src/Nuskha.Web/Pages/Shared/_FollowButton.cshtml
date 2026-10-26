@@ -1,0 +1,8 @@
+@model FollowButtonModel
+<form hx-post="/social/follow" hx-target="this" hx-swap="outerHTML" class="flex items-center gap-3">
+    <input type="hidden" name="userId" value="@Model.UserId" />
+    <button type="submit" class="@("btn " + (Model.Following ? "" : "btn-primary"))" aria-pressed="@(Model.Following ? "true" : "false")">
+        @(Model.Following ? T["follow.unfollow"] : T["follow.follow"])
+    </button>
+    <span class="hint">@T.Format("follow.count", Model.FollowerCount)</span>
+</form>

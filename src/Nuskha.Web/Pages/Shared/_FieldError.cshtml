@@ -1,0 +1,5 @@
+@model FieldErrorModel
+@if (Model.Errors.TryGetValue(Model.Field, out var key))
+{
+    <p class="field-error" role="alert">@T[key]</p>
+}

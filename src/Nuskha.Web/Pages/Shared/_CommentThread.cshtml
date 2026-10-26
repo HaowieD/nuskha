@@ -1,0 +1,41 @@
+@model CommentThreadModel
+@{
+    var top = Model.Comments.Where(c => c.ParentId is null).ToList();
+    var returnUrl = Uri.EscapeDataString(Context.Request.Path.Value + Context.Request.QueryString.Value);
+    var dom = Model.DomId;
+}
+<section id="@dom" aria-label="@T["comments.title"]" class="space-y-3">
+    <h3 class="font-serif text-lg">@T["comments.title"] <span class="text-soft">(@Model.Comments.Count)</span></h3>
+
+    @if (Model.ViewerId is null)
+    {
+        <p class="hint"><a class="link" href="/account/login?returnUrl=@returnUrl">@T["comments.login"]</a></p>
+    }
+    else
+    {
+        <form hx-post="/social/comments?handler=Add" hx-target="#@dom" hx-swap="outerHTML" class="space-y-2">
+            <input type="hidden" name="type" value="@((int)Model.Type)" />
+            <input type="hidden" name="id" value="@Model.TargetId" />
+            <label class="sr-only" for="@("body-" + dom)">@T["comments.write"]</label>
+            <textarea id="@("body-" + dom)" name="body" rows="2" maxlength="2000" required class="input" placeholder="@T["comments.write"]"></textarea>
+            <button type="submit" class="btn btn-primary btn-sm">@T["comments.post"]</button>
+        </form>
+    }
+
+    @if (top.Count == 0)
+    {
+        <p class="hint">@T["comments.empty"]</p>
+    }
+    <ul class="space-y-4">
+        @foreach (var c in top)
+        {
+            <li>
+                <partial name="_CommentItem" model="new CommentItemModel(Model, c, false)" />
+                @foreach (var r in Model.Comments.Where(x => x.ParentId == c.Id))
+                {
+                    <div class="mt-3"><partial name="_CommentItem" model="new CommentItemModel(Model, r, true)" /></div>
+                }
+            </li>
+        }
+    </ul>
+</section>

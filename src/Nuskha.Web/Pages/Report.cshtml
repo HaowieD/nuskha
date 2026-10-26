@@ -1,0 +1,26 @@
+@page "/report"
+@model Nuskha.Web.Pages.ReportModel
+@{ ViewData["Title"] = T["report.title"]; }
+<div class="mx-auto max-w-xl space-y-4">
+    <h1 class="text-2xl font-bold">@T["report.title"]</h1>
+    @if (Model.Done)
+    {
+        <p class="card" role="status">@T["report.thanks"]</p>
+        <a class="link" href="@Model.TargetUrl">@T["common.back"]</a>
+    }
+    else
+    {
+        <p class="hint">@T["report.help"]</p>
+        <form method="post" class="space-y-3">
+            <input type="hidden" name="Type" value="@Model.Type" />
+            <input type="hidden" name="Id" value="@Model.Id" />
+            <div>
+                <label class="label" for="reason">@T["report.reason"]</label>
+                <textarea id="reason" name="Reason" rows="4" maxlength="1000" required class="input">@Model.Reason</textarea>
+                @if (Model.Error is not null) { <p class="field-error" role="alert">@T[Model.Error]</p> }
+            </div>
+            <button class="btn btn-primary" type="submit">@T["report.submit"]</button>
+            <a class="btn" href="@Model.TargetUrl">@T["common.cancel"]</a>
+        </form>
+    }
+</div>

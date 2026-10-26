@@ -1,0 +1,9 @@
+@model FeedPageModel
+@foreach (var item in Model.Items)
+{
+    <partial name="_ActivityItem" model="item" />
+}
+@if (Model.NextUrl is not null)
+{
+    <div hx-get="@Model.NextUrl" hx-trigger="revealed" hx-swap="outerHTML" class="py-4 text-center hint">@T["common.loading"]</div>
+}
