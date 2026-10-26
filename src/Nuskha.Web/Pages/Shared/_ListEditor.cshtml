@@ -1,0 +1,59 @@
+@model ListEditorModel
+@{
+    var action = "/books/" + Model.Slug;
+}
+<form id="list-editor" method="post" asp-page="/Books/Details" asp-page-handler="List" asp-route-slug="@Model.Slug"
+      hx-post="@(action)?handler=List" hx-target="#list-editor" hx-swap="outerHTML" class="card space-y-3">
+    @if (Model.Saved)
+    {
+        <p class="text-sm text-ok" role="status">@T["list.saved"]</p>
+    }
+    <div class="grid gap-3 sm:grid-cols-3">
+        <div>
+            <label class="label" for="le-status">@T["list.status"]</label>
+            <select id="le-status" name="status" class="input">
+                @foreach (var s in Enum.GetValues<ReadingStatus>())
+                {
+                    <option value="@((int)s)" selected="@(s == Model.Status)">@T["status." + s]</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label class="label" for="le-rating">@T["list.rating"]</label>
+            <select id="le-rating" name="rating" class="input">
+                <option value="">—</option>
+                @for (var i = 10; i >= 1; i--)
+                {
+                    <option value="@i" selected="@(Model.Rating == i)">@i</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label class="label" for="le-pages">@T["list.pages"]</label>
+            <input id="le-pages" name="pagesRead" type="number" min="0" max="100000" value="@Model.PagesRead" class="input" />
+        </div>
+        <div>
+            <label class="label" for="le-start">@T["list.started"]</label>
+            <input id="le-start" name="startedOn" type="date" value="@Model.StartedOn?.ToString("yyyy-MM-dd")" class="input" />
+        </div>
+        <div>
+            <label class="label" for="le-finish">@T["list.finished"]</label>
+            <input id="le-finish" name="finishedOn" type="date" value="@Model.FinishedOn?.ToString("yyyy-MM-dd")" class="input" />
+        </div>
+    </div>
+    <div>
+        <label class="label" for="le-notes">@T["list.notes"]</label>
+        <textarea id="le-notes" name="notes" rows="3" maxlength="2000" class="input">@Model.Notes</textarea>
+    </div>
+    <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="isPrivate" value="true" checked="@Model.IsPrivate" /> @T["list.private"]
+    </label>
+    <div class="flex flex-wrap items-center gap-2">
+        <button type="submit" class="btn btn-primary">@(Model.Exists ? T["common.save"] : T["list.add"])</button>
+        @if (Model.Exists)
+        {
+            <button type="submit" class="btn" formnovalidate formaction="@(action)?handler=Remove" hx-post="@(action)?handler=Remove"
+                    hx-confirm="@T["common.confirm"]">@T["list.remove"]</button>
+        }
+    </div>
+</form>

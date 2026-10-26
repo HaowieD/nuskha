@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/node_modules/
+.git/
+.github/
+tests/
+data/
+.env
+*.md

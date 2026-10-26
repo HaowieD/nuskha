@@ -13,7 +13,7 @@ else
             <span class="absolute -right-2 -top-2 rounded-full bg-accent px-1.5 text-[10px] font-bold text-accentink">@Model.Unread</span>
         }
     </a>
-    @if (Model.IsStaff)
+    if (Model.IsStaff)
     {
         <a href="/admin" class="chip no-underline">@T["nav.admin"]</a>
     }
@@ -26,7 +26,7 @@ else
             <a class="block rounded px-3 py-2 no-underline hover:bg-paper2" href="/user/@Model.UserName">@T["nav.profile"]</a>
             <a class="block rounded px-3 py-2 no-underline hover:bg-paper2" href="/user/@Model.UserName/list">@T["nav.mylist"]</a>
             <a class="block rounded px-3 py-2 no-underline hover:bg-paper2" href="/settings">@T["nav.settings"]</a>
-            <form method="post" action="/account/logout">
+            <form method="post" asp-page="/Account/Logout">
                 <button type="submit" class="block w-full rounded px-3 py-2 text-left hover:bg-paper2">@T["auth.logout"]</button>
             </form>
         </div>

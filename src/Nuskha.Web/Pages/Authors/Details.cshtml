@@ -1,0 +1,30 @@
+@page "/authors/{slug}"
+@model Nuskha.Web.Pages.Authors.DetailsModel
+@{
+    var name = T.Pick(Model.Author.Name, Model.Author.NameEn);
+    ViewData["Title"] = name;
+    ViewData["Description"] = Model.Author.Bio;
+}
+<header class="mb-6 space-y-2">
+    <h1 class="text-3xl font-bold">@name</h1>
+    @if (T.IsEnglish ? !string.IsNullOrWhiteSpace(Model.Author.Name) : !string.IsNullOrWhiteSpace(Model.Author.NameEn))
+    {
+        <p class="text-soft">@(T.IsEnglish ? Model.Author.Name : Model.Author.NameEn)</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.Author.Bio))
+    {
+        <p class="max-w-2xl whitespace-pre-line">@Model.Author.Bio</p>
+    }
+</header>
+
+<h2 class="mb-3 text-xl font-bold">@T["author.books"] <span class="text-soft">(@Model.Books.Count)</span></h2>
+@if (Model.Books.Count == 0)
+{
+    <p class="card text-soft">@T["books.empty"]</p>
+}
+else
+{
+    <div class="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        @foreach (var b in Model.Books) { <partial name="_BookCard" model="b" /> }
+    </div>
+}

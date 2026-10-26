@@ -1,0 +1,71 @@
+@page "/admin/users"
+@model Nuskha.Web.Pages.Admin.Users.IndexModel
+@{
+    ViewData["Title"] = T["admin.users"];
+    var isAdmin = User.IsInRole(Roles.Admin);
+}
+<h1 class="mb-4 text-2xl font-bold">@T["admin.users"] <span class="text-soft">(@Model.Total)</span></h1>
+
+<form method="get" role="search" class="card mb-4 flex flex-wrap items-end gap-3">
+    <div class="min-w-48 flex-1">
+        <label class="label" for="q">@T["users.search"]</label>
+        <input id="q" name="q" type="search" value="@Model.Q" class="input" />
+    </div>
+    <button class="btn btn-primary" type="submit">@T["common.search"]</button>
+</form>
+
+<div class="overflow-x-auto">
+    <table class="table-simple">
+        <thead>
+            <tr>
+                <th scope="col">@T["auth.username"]</th>
+                <th scope="col">@T["auth.email"]</th>
+                <th scope="col">@T["admin.roles"]</th>
+                <th scope="col">@T["admin.created"]</th>
+                <th scope="col"><span class="sr-only">@T["admin.actions"]</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var u in Model.Rows)
+            {
+                <tr>
+                    <td>
+                        <a class="link font-medium" href="/user/@u.UserName">@u.UserName</a>
+                        <div class="hint">@u.DisplayName</div>
+                        @if (u.Locked) { <span class="chip">@T["admin.locked"]</span> }
+                    </td>
+                    <td class="break-all">@u.Email</td>
+                    <td>
+                        @if (isAdmin)
+                        {
+                            <form method="post" asp-page-handler="Roles" class="space-y-1">
+                                <input type="hidden" name="id" value="@u.Id" />
+                                <input type="hidden" name="q" value="@Model.Q" />
+                                @foreach (var role in Nuskha.Web.Pages.Admin.Users.IndexModel.StaffRoles)
+                                {
+                                    <label class="flex items-center gap-2 text-sm">
+                                        <input type="checkbox" name="roles" value="@role" checked="@u.RoleNames.Contains(role)" /> @T["role." + role]
+                                    </label>
+                                }
+                                <button class="btn btn-sm" type="submit">@T["common.save"]</button>
+                            </form>
+                        }
+                        else
+                        {
+                            foreach (var role in u.RoleNames.Where(r => r != Roles.User)) { <span class="chip">@T["role." + role]</span> }
+                        }
+                    </td>
+                    <td class="whitespace-nowrap">@u.CreatedAt.ToString("dd.MM.yyyy")</td>
+                    <td>
+                        <form method="post" asp-page-handler="@(u.Locked ? "Unlock" : "Lock")" class="inline">
+                            <input type="hidden" name="id" value="@u.Id" />
+                            <input type="hidden" name="q" value="@Model.Q" />
+                            <button class="@("btn btn-sm " + (u.Locked ? "" : "btn-danger"))" type="submit">@(u.Locked ? T["admin.unlock"] : T["admin.lock"])</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<partial name="_Pager" model="new PagerModel(Model.PageNo, Model.TotalPages)" />

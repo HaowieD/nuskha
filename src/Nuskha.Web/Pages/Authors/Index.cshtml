@@ -1,0 +1,32 @@
+@page "/authors"
+@model Nuskha.Web.Pages.Authors.IndexModel
+@{ ViewData["Title"] = T["authors.title"]; }
+<h1 class="mb-4 text-2xl font-bold">@T["authors.title"]</h1>
+
+<form method="get" role="search" class="card mb-6 flex flex-wrap items-end gap-3">
+    <div class="min-w-48 flex-1">
+        <label class="label" for="q">@T["authors.search"]</label>
+        <input id="q" name="q" type="search" value="@Model.Q" class="input" />
+    </div>
+    <button class="btn btn-primary" type="submit">@T["common.search"]</button>
+</form>
+
+@if (Model.Items.Count == 0)
+{
+    <p class="card text-soft">@T["authors.empty"]</p>
+}
+else
+{
+    <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach (var a in Model.Items)
+        {
+            <li>
+                <a class="card flex items-center justify-between gap-3 no-underline hover:border-accent" href="/authors/@a.Slug">
+                    <span class="font-medium">@T.Pick(a.Name, a.NameEn)</span>
+                    <span class="chip">@T.Format("authors.books", a.BookCount)</span>
+                </a>
+            </li>
+        }
+    </ul>
+    <partial name="_Pager" model="new PagerModel(Model.PageNo, Model.TotalPages)" />
+}

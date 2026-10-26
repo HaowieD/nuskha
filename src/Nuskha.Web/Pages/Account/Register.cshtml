@@ -1,0 +1,53 @@
+@page "/account/register"
+@model Nuskha.Web.Pages.Account.RegisterModel
+@{ ViewData["Title"] = T["auth.register"]; }
+<div class="mx-auto max-w-md space-y-4">
+    <h1 class="text-2xl font-bold">@T["auth.register"]</h1>
+
+    <form method="post" class="card space-y-3">
+        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+        <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Form")' />
+        <div>
+            <label class="label" for="UserName">@T["auth.username"]</label>
+            <input id="UserName" name="UserName" value="@Model.UserName" class="input" autocomplete="username" required
+                   minlength="3" maxlength="24" pattern="[A-Za-z0-9_\-]{3,24}" aria-describedby="UserName-hint" />
+            <p id="UserName-hint" class="hint">@T["auth.username.hint"]</p>
+            <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "UserName")' />
+        </div>
+        <div>
+            <label class="label" for="DisplayName">@T["auth.displayname"]</label>
+            <input id="DisplayName" name="DisplayName" value="@Model.DisplayName" class="input" maxlength="60" autocomplete="nickname" />
+            <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "DisplayName")' />
+        </div>
+        <div>
+            <label class="label" for="Email">@T["auth.email"]</label>
+            <input id="Email" name="Email" type="email" value="@Model.Email" class="input" autocomplete="email" required />
+            <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Email")' />
+        </div>
+        <div>
+            <label class="label" for="Password">@T["auth.password"]</label>
+            <input id="Password" name="Password" type="password" class="input" autocomplete="new-password" required minlength="8" />
+            <p class="hint">@T["auth.password.hint"]</p>
+            <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Password")' />
+        </div>
+        <div>
+            <label class="label" for="ConfirmPassword">@T["auth.password.confirm"]</label>
+            <input id="ConfirmPassword" name="ConfirmPassword" type="password" class="input" autocomplete="new-password" required />
+            <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "ConfirmPassword")' />
+        </div>
+        <button class="btn btn-primary w-full" type="submit">@T["auth.register"]</button>
+    </form>
+
+    @if (Model.GoogleEnabled)
+    {
+        <p class="text-center text-sm text-soft">@T["auth.or"]</p>
+        <form method="post" asp-page="/Account/External">
+            <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+            <button class="btn w-full" type="submit">@T["auth.google"]</button>
+        </form>
+    }
+
+    <p class="text-center text-sm">
+        @T["auth.haveaccount"] <a class="link" href="/account/login?returnUrl=@Uri.EscapeDataString(Model.ReturnUrl ?? "/")">@T["auth.login"]</a>
+    </p>
+</div>

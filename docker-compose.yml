@@ -1,0 +1,42 @@
+# Production-style stack: PostgreSQL + the web app. Put a TLS-terminating reverse proxy
+# (Caddy, Nginx Proxy Manager, Traefik, or a Cloudflare Tunnel) in front of port 8080.
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nuskha
+      POSTGRES_USER: nuskha
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nuskha -d nuskha"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    volumes:
+      - appdata:/data
+    environment:
+      ConnectionStrings__Default: Host=db;Port=5432;Database=nuskha;Username=nuskha;Password=${DB_PASSWORD}
+      Site__BaseUrl: ${SITE_URL:-https://nuskha.ge}
+      # Trust X-Forwarded-* from the reverse proxy so links, cookies and the Google redirect URI use https.
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      Seed__AdminUserName: ${ADMIN_USERNAME:-admin}
+      Seed__AdminEmail: ${ADMIN_EMAIL:-}
+      Seed__AdminPassword: ${ADMIN_PASSWORD:-}
+      Authentication__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
+      Authentication__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET:-}
+
+volumes:
+  dbdata:
+  appdata:

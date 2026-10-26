@@ -1,0 +1,87 @@
+@page "/forum/thread/{slug}"
+@model Nuskha.Web.Pages.Forum.ThreadModel
+@{
+    var t = Model.Thread;
+    ViewData["Title"] = t.Title;
+    var isModerator = User.CanModerate();
+    var me = User.GetUserId();
+}
+<nav class="mb-2 text-sm" aria-label="breadcrumb">
+    <a class="link" href="/forum">@T["forum.title"]</a> /
+    <a class="link" href="/forum/@Model.Category.Slug">@T.Pick(Model.Category.Name, Model.Category.NameEn)</a>
+</nav>
+
+<header class="mb-4 space-y-2">
+    <h1 class="text-2xl font-bold">
+        @t.Title
+        @if (t.IsPinned) { <span class="chip ml-1 align-middle">@T["forum.pinned"]</span> }
+        @if (t.IsLocked) { <span class="chip ml-1 align-middle">@T["forum.locked"]</span> }
+    </h1>
+    @if (isModerator)
+    {
+        <form method="post" asp-page-handler="Moderate" asp-route-slug="@t.Slug" class="flex flex-wrap gap-2">
+            <button class="btn btn-sm" name="action" value="@(t.IsPinned ? "unpin" : "pin")" type="submit">@(t.IsPinned ? T["forum.unpin"] : T["forum.pin"])</button>
+            <button class="btn btn-sm" name="action" value="@(t.IsLocked ? "unlock" : "lock")" type="submit">@(t.IsLocked ? T["forum.unlock"] : T["forum.lock"])</button>
+        </form>
+    }
+</header>
+
+<ol class="space-y-3">
+    @foreach (var p in Model.Posts)
+    {
+        <li id="@("post-" + p.Id)" class="card flex gap-3">
+            <partial name="_Avatar" model='new AvatarModel(p.AvatarPath, p.DisplayName, "md")' />
+            <div class="min-w-0 flex-1">
+                <p class="text-sm">
+                    <a class="font-semibold no-underline hover:text-accent" href="/user/@p.UserName">@p.DisplayName</a>
+                    <span class="hint">@@@p.UserName · <time datetime="@p.CreatedAt.ToString("o")">@T.TimeAgo(p.CreatedAt)</time></span>
+                </p>
+                @if (p.IsDeleted)
+                {
+                    <p class="text-sm italic text-soft">@T["forum.deleted"]</p>
+                }
+                else
+                {
+                    <p class="mt-1 whitespace-pre-line break-words">@p.Body</p>
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                        <partial name="_LikeButton" model="new LikeButtonModel(TargetType.ForumPost, p.Id, p.LikeCount, p.Liked)" />
+                        @if (me is not null && me != p.AuthorId)
+                        {
+                            <a class="text-xs text-soft no-underline hover:text-accent" href="/report?type=@((int)TargetType.ForumPost)&id=@p.Id">@T["report.link"]</a>
+                        }
+                        @if (me == p.AuthorId || isModerator)
+                        {
+                            <form method="post" asp-page-handler="DeletePost" asp-route-slug="@t.Slug" class="inline">
+                                <input type="hidden" name="postId" value="@p.Id" />
+                                <button type="submit" class="text-xs text-soft hover:text-red-700">@T["common.delete"]</button>
+                            </form>
+                        }
+                    </div>
+                }
+            </div>
+        </li>
+    }
+</ol>
+
+<partial name="_Pager" model="new PagerModel(Model.PageNo, Model.TotalPages)" />
+
+<section class="mt-6" aria-labelledby="reply-h">
+    <h2 id="reply-h" class="mb-2 text-lg font-bold">@T["forum.reply"]</h2>
+    @if (me is null)
+    {
+        <p class="card"><a class="link" href="/account/login?returnUrl=/forum/thread/@t.Slug">@T["comments.login"]</a></p>
+    }
+    else if (t.IsLocked && !isModerator)
+    {
+        <p class="card text-soft">@T["forum.locked.msg"]</p>
+    }
+    else
+    {
+        <form method="post" asp-page-handler="Reply" asp-route-slug="@t.Slug" class="card space-y-3">
+            @if (Model.ReplyError is not null) { <p class="field-error" role="alert">@T[Model.ReplyError]</p> }
+            <label class="sr-only" for="body">@T["forum.reply"]</label>
+            <textarea id="body" name="body" rows="5" maxlength="10000" required class="input"></textarea>
+            <button class="btn btn-primary" type="submit">@T["comments.post"]</button>
+        </form>
+    }
+</section>

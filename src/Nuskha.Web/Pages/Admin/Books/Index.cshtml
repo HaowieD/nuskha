@@ -1,0 +1,84 @@
+@page "/admin/books"
+@model Nuskha.Web.Pages.Admin.Books.IndexModel
+@{
+    ViewData["Title"] = T["admin.books"];
+    var canEdit = User.CanManageCatalog();
+    var isAdmin = User.IsInRole(Roles.Admin);
+}
+<h1 class="mb-4 text-2xl font-bold">@T["admin.books"] <span class="text-soft">(@Model.Total)</span></h1>
+
+<form method="get" role="search" class="card mb-4 grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
+    <div>
+        <label class="label" for="q">@T["books.search"]</label>
+        <input id="q" name="q" type="search" value="@Model.Q" class="input" />
+    </div>
+    <div>
+        <label class="label" for="status">@T["list.status"]</label>
+        <select id="status" name="status" class="input">
+            <option value="">@T["list.all"]</option>
+            @foreach (var s in Enum.GetValues<BookStatus>())
+            {
+                <option value="@((int)s)" selected="@(Model.Status == (int)s)">@T["bookstatus." + s]</option>
+            }
+        </select>
+    </div>
+    <div class="flex items-end"><button class="btn btn-primary w-full" type="submit">@T["common.search"]</button></div>
+</form>
+
+<div class="overflow-x-auto">
+    <table class="table-simple">
+        <thead>
+            <tr>
+                <th scope="col">@T["list.col.book"]</th>
+                <th scope="col">@T["list.status"]</th>
+                <th scope="col">@T["admin.source"]</th>
+                <th scope="col">@T["admin.created"]</th>
+                <th scope="col"><span class="sr-only">@T["admin.actions"]</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model.Rows)
+            {
+                <tr>
+                    <td>
+                        <a class="link font-medium" href="/books/@r.Slug">@r.Title</a>
+                        @if (!string.IsNullOrWhiteSpace(r.FirstAuthor)) { <div class="hint">@r.FirstAuthor</div> }
+                    </td>
+                    <td><span class="chip">@T["bookstatus." + r.Status]</span></td>
+                    <td class="text-sm">@(r.SubmittedBy is not null ? "@" + r.SubmittedBy : r.Source ?? "—")</td>
+                    <td class="whitespace-nowrap">@r.CreatedAt.ToString("dd.MM.yyyy")</td>
+                    <td>
+                        <div class="flex flex-wrap gap-1">
+                            @if (canEdit) { <a class="btn btn-sm" href="/admin/books/@r.Id">@T["common.edit"]</a> }
+                            @if (r.Status != BookStatus.Published)
+                            {
+                                <form method="post" asp-page-handler="Status">
+                                    <input type="hidden" name="id" value="@r.Id" /><input type="hidden" name="status" value="@((int)BookStatus.Published)" />
+                                    <input type="hidden" name="filter" value="@Model.Status" /><input type="hidden" name="q" value="@Model.Q" />
+                                    <button class="btn btn-sm btn-primary" type="submit">@T["admin.publish"]</button>
+                                </form>
+                            }
+                            @if (r.Status != BookStatus.Hidden)
+                            {
+                                <form method="post" asp-page-handler="Status">
+                                    <input type="hidden" name="id" value="@r.Id" /><input type="hidden" name="status" value="@((int)BookStatus.Hidden)" />
+                                    <input type="hidden" name="filter" value="@Model.Status" /><input type="hidden" name="q" value="@Model.Q" />
+                                    <button class="btn btn-sm" type="submit">@T["admin.hide"]</button>
+                                </form>
+                            }
+                            @if (isAdmin)
+                            {
+                                <form method="post" asp-page-handler="Delete">
+                                    <input type="hidden" name="id" value="@r.Id" />
+                                    <input type="hidden" name="filter" value="@Model.Status" /><input type="hidden" name="q" value="@Model.Q" />
+                                    <button class="btn btn-sm btn-danger" type="submit" data-confirm="@T["common.confirm"]">@T["common.delete"]</button>
+                                </form>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<partial name="_Pager" model="new PagerModel(Model.PageNo, Model.TotalPages)" />

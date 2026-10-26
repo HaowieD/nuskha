@@ -9,3 +9,10 @@ document.addEventListener('htmx:responseError', function (e) {
   toast.classList.remove('hidden');
   window.setTimeout(function () { toast.classList.add('hidden'); }, 4000);
 });
+
+// Confirmation for plain (non-htmx) forms: <button data-confirm="Are you sure?">. Kept in a file, not inline, for the CSP.
+document.addEventListener('submit', function (e) {
+  var button = e.submitter;
+  var message = button && button.getAttribute('data-confirm');
+  if (message && !window.confirm(message)) e.preventDefault();
+});

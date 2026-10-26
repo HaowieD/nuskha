@@ -1,0 +1,72 @@
+@page "/settings"
+@model Nuskha.Web.Pages.Me.SettingsModel
+@{ ViewData["Title"] = T["settings.title"]; }
+<div class="mx-auto max-w-2xl space-y-8">
+    <h1 class="text-2xl font-bold">@T["settings.title"]</h1>
+
+    <section aria-labelledby="profile-h">
+        <h2 id="profile-h" class="mb-3 text-lg font-bold">@T["settings.profile"]</h2>
+        <form method="post" asp-page-handler="Profile" enctype="multipart/form-data" class="card space-y-3">
+            <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Form")' />
+            <div class="flex items-center gap-4">
+                <partial name="_Avatar" model='new AvatarModel(Model.AvatarPath, Model.DisplayName ?? Model.UserName, "lg")' />
+                <div class="flex-1">
+                    <label class="label" for="Avatar">@T["settings.avatar"]</label>
+                    <input id="Avatar" name="Avatar" type="file" accept="image/jpeg,image/png,image/webp" class="input" />
+                    <p class="hint">@T["submit.f.cover.hint"]</p>
+                    <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Avatar")' />
+                    @if (Model.AvatarPath is not null)
+                    {
+                        <label class="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" name="RemoveAvatar" value="true" /> @T["settings.avatar.remove"]</label>
+                    }
+                </div>
+            </div>
+            <div>
+                <label class="label" for="DisplayName">@T["auth.displayname"]</label>
+                <input id="DisplayName" name="DisplayName" value="@Model.DisplayName" maxlength="60" required class="input" />
+                <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "DisplayName")' />
+            </div>
+            <div>
+                <p class="label">@T["auth.username"]</p>
+                <p class="text-sm"><code>@Model.UserName</code> — <a class="link" href="/user/@Model.UserName">nuskha.ge/user/@Model.UserName</a></p>
+                <p class="hint">@T["settings.username.fixed"]</p>
+            </div>
+            <div>
+                <label class="label" for="Bio">@T["settings.bio"]</label>
+                <textarea id="Bio" name="Bio" rows="4" maxlength="1000" class="input">@Model.Bio</textarea>
+                <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Bio")' />
+            </div>
+            <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="ListsArePublic" value="true" checked="@Model.ListsArePublic" /> @T["settings.listspublic"]
+            </label>
+            <button class="btn btn-primary" type="submit">@T["common.save"]</button>
+        </form>
+    </section>
+
+    <section aria-labelledby="pw-h">
+        <h2 id="pw-h" class="mb-3 text-lg font-bold">@(Model.HasPassword ? T["settings.password"] : T["settings.password.set"])</h2>
+        <form method="post" asp-page-handler="Password" class="card space-y-3">
+            @if (Model.GoogleLinked) { <p class="hint">@T["settings.google.linked"]</p> }
+            @if (Model.HasPassword)
+            {
+                <div>
+                    <label class="label" for="currentPassword">@T["settings.password.current"]</label>
+                    <input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" class="input" required />
+                    <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "CurrentPassword")' />
+                </div>
+            }
+            <div>
+                <label class="label" for="newPassword">@T["settings.password.new"]</label>
+                <input id="newPassword" name="newPassword" type="password" autocomplete="new-password" minlength="8" class="input" required />
+                <p class="hint">@T["auth.password.hint"]</p>
+                <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "NewPassword")' />
+            </div>
+            <div>
+                <label class="label" for="confirmPassword">@T["auth.password.confirm"]</label>
+                <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" class="input" required />
+                <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "ConfirmPassword")' />
+            </div>
+            <button class="btn btn-primary" type="submit">@T["common.save"]</button>
+        </form>
+    </section>
+</div>

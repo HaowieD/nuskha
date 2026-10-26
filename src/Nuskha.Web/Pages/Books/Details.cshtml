@@ -1,0 +1,127 @@
+@page "/books/{slug}"
+@using System.Text.Json
+@model Nuskha.Web.Pages.Books.DetailsModel
+@{
+    var b = Model.Book;
+    var title = T.IsEnglish && !string.IsNullOrWhiteSpace(b.TitleEn) ? b.TitleEn! : b.Title;
+    var altTitle = T.IsEnglish ? b.Title : b.TitleEn;
+    var authors = b.Authors.Select(a => a.Author).ToList();
+    ViewData["Title"] = title;
+    ViewData["Description"] = !string.IsNullOrWhiteSpace(b.Description) && b.Description.Length > 160 ? b.Description[..157] + "…" : b.Description;
+    var jsonLd = JsonSerializer.Serialize(new Dictionary<string, object?>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "Book",
+        ["name"] = b.Title,
+        ["author"] = authors.Select(a => new Dictionary<string, object?> { ["@type"] = "Person", ["name"] = a.Name }).ToList(),
+        ["isbn"] = b.Isbn,
+        ["inLanguage"] = b.Language,
+        ["publisher"] = b.Publisher,
+        ["datePublished"] = b.PublishYear?.ToString(),
+        ["numberOfPages"] = b.PageCount,
+    });
+}
+@section Head {
+    <script type="application/ld+json">@Html.Raw(jsonLd)</script>
+}
+
+@if (b.Status != BookStatus.Published)
+{
+    <p class="card mb-4 border-accent text-accent" role="status">@T["book.notpublished"]</p>
+}
+
+<article class="grid gap-8 md:grid-cols-[14rem_minmax(0,1fr)]">
+    <div class="space-y-3">
+        <div class="@("cover cover-" + WebExtensions.CoverBucket(b.Slug))">
+            @if (!string.IsNullOrEmpty(b.CoverPath))
+            {
+                <img src="/uploads/@b.CoverPath" alt="@title" />
+            }
+            else
+            {
+                <span class="relative">@title</span>
+            }
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <partial name="_LikeButton" model="new LikeButtonModel(TargetType.Book, b.Id, Model.Likes.Count, Model.Likes.Liked)" />
+            @if (User.Identity!.IsAuthenticated)
+            {
+                <a class="text-xs text-soft no-underline hover:text-accent" href="/report?type=@((int)TargetType.Book)&id=@b.Id">@T["report.link"]</a>
+            }
+            @if (User.CanManageCatalog())
+            {
+                <a class="btn btn-sm" href="/admin/books/@b.Id">@T["common.edit"]</a>
+            }
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <header class="space-y-1">
+            <h1 class="text-3xl font-bold leading-tight">@title</h1>
+            @if (!string.IsNullOrWhiteSpace(altTitle)) { <p class="text-soft">@altTitle</p> }
+            <p>
+                @foreach (var (a, i) in authors.Select((a, i) => (a, i)))
+                {
+                    if (i > 0) { <span>, </span> }
+                    <a class="link font-medium" href="/authors/@a.Slug">@T.Pick(a.Name, a.NameEn)</a>
+                }
+            </p>
+            <p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-soft">
+                @if (b.AverageRating is double avg)
+                {
+                    <span><span aria-hidden="true">★</span> <strong class="text-ink">@avg.ToString("0.0")</strong>/10 · @T.Format("book.ratings", b.RatingCount)</span>
+                }
+                <span>@T.Format("book.readers", b.ListCount)</span>
+            </p>
+        </header>
+
+        <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-4">
+            @if (b.PublishYear is not null) { <div><dt class="hint">@T["book.year"]</dt><dd>@b.PublishYear</dd></div> }
+            @if (!string.IsNullOrWhiteSpace(b.Publisher)) { <div><dt class="hint">@T["book.publisher"]</dt><dd>@b.Publisher</dd></div> }
+            @if (b.PageCount is not null) { <div><dt class="hint">@T["book.pages"]</dt><dd>@b.PageCount</dd></div> }
+            @if (!string.IsNullOrWhiteSpace(b.Isbn)) { <div><dt class="hint">ISBN</dt><dd>@b.Isbn</dd></div> }
+        </dl>
+
+        @if (!string.IsNullOrWhiteSpace(b.Description))
+        {
+            <section aria-labelledby="desc-h">
+                <h2 id="desc-h" class="mb-1 text-lg font-bold">@T["book.description"]</h2>
+                <p class="whitespace-pre-line">@b.Description</p>
+            </section>
+        }
+
+        <section aria-labelledby="mylist-h">
+            <h2 id="mylist-h" class="mb-2 text-lg font-bold">@T["book.mylist"]</h2>
+            @if (User.Identity.IsAuthenticated && b.Status == BookStatus.Published)
+            {
+                <partial name="_ListEditor" model="Model.Editor" />
+            }
+            else
+            {
+                <p class="card text-sm"><a class="link" href="/account/login?returnUrl=/books/@b.Slug">@T["book.login"]</a></p>
+            }
+        </section>
+
+        @if (Model.Readers.Count > 0)
+        {
+            <section aria-labelledby="readers-h">
+                <h2 id="readers-h" class="mb-2 text-lg font-bold">@T["book.whoreads"]</h2>
+                <ul class="flex flex-wrap gap-3">
+                    @foreach (var r in Model.Readers)
+                    {
+                        <li>
+                            <a class="flex items-center gap-2 rounded-lg border border-line bg-card px-2 py-1 text-sm no-underline hover:border-accent" href="/user/@r.UserName">
+                                <partial name="_Avatar" model='new AvatarModel(r.AvatarPath, r.DisplayName, "sm")' />
+                                <span>@r.DisplayName</span>
+                                <span class="chip">@T["status." + r.Status]</span>
+                                @if (r.Rating is not null) { <span class="hint">★ @r.Rating</span> }
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+
+        <partial name="_CommentThread" model="Model.Thread" />
+    </div>
+</article>

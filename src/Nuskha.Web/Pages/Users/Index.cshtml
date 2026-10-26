@@ -1,0 +1,35 @@
+@page "/users"
+@model Nuskha.Web.Pages.Users.IndexModel
+@{ ViewData["Title"] = T["users.title"]; }
+<h1 class="mb-4 text-2xl font-bold">@T["users.title"]</h1>
+
+<form method="get" role="search" class="card mb-6 flex flex-wrap items-end gap-3">
+    <div class="min-w-48 flex-1">
+        <label class="label" for="q">@T["users.search"]</label>
+        <input id="q" name="q" type="search" value="@Model.Q" class="input" />
+    </div>
+    <button class="btn btn-primary" type="submit">@T["common.search"]</button>
+</form>
+
+@if (Model.Items.Count == 0)
+{
+    <p class="card text-soft">@T["users.empty"]</p>
+}
+else
+{
+    <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach (var u in Model.Items)
+        {
+            <li>
+                <a class="card flex items-center gap-3 no-underline hover:border-accent" href="/user/@u.UserName">
+                    <partial name="_Avatar" model='new AvatarModel(u.AvatarPath, u.DisplayName, "md")' />
+                    <span class="min-w-0">
+                        <span class="block truncate font-medium">@u.DisplayName</span>
+                        <span class="hint">@@@u.UserName · @T.Format("users.books", u.BookCount) · @T.Format("follow.count", u.Followers)</span>
+                    </span>
+                </a>
+            </li>
+        }
+    </ul>
+    <partial name="_Pager" model="new PagerModel(Model.PageNo, Model.TotalPages)" />
+}

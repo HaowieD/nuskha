@@ -1,0 +1,28 @@
+@page "/notifications"
+@model Nuskha.Web.Pages.Me.NotificationsModel
+@{ ViewData["Title"] = T["nav.notifications"]; }
+<div class="mx-auto max-w-2xl space-y-4">
+    <h1 class="text-2xl font-bold">@T["nav.notifications"]</h1>
+    @if (Model.Items.Count == 0)
+    {
+        <p class="card text-soft">@T["notif.empty"]</p>
+    }
+    else
+    {
+        <ul class="space-y-2">
+            @foreach (var n in Model.Items)
+            {
+                <li>
+                    <a href="@n.Url" class="@("card flex items-start gap-3 no-underline hover:border-accent " + (n.IsRead ? "" : "border-accent"))">
+                        <partial name="_Avatar" model='new AvatarModel(n.ActorAvatar, n.ActorName, "sm")' />
+                        <span class="min-w-0 flex-1 text-sm">
+                            <strong>@n.ActorName</strong> @T["notif." + n.Type]
+                            <span class="hint block"><time datetime="@n.CreatedAt.ToString("o")">@T.TimeAgo(n.CreatedAt)</time></span>
+                        </span>
+                        @if (!n.IsRead) { <span class="chip">@T["notif.new"]</span> }
+                    </a>
+                </li>
+            }
+        </ul>
+    }
+</div>

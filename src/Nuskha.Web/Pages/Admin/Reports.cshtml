@@ -1,0 +1,42 @@
+@page "/admin/reports"
+@model Nuskha.Web.Pages.Admin.ReportsModel
+@{ ViewData["Title"] = T["admin.reports"]; }
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-2xl font-bold">@T["admin.reports"]</h1>
+    <a class="btn btn-sm" href="/admin/reports@(Model.ShowClosed ? "" : "?showClosed=true")">@(Model.ShowClosed ? T["admin.reports.open"] : T["admin.reports.closed"])</a>
+</div>
+
+@if (Model.Rows.Count == 0)
+{
+    <p class="card text-soft">@T["admin.reports.none"]</p>
+}
+else
+{
+    <ul class="space-y-3">
+        @foreach (var r in Model.Rows)
+        {
+            <li class="card space-y-2">
+                <p class="text-sm">
+                    <span class="chip">@T["target." + r.Type]</span>
+                    @if (r.TargetUrl is not null) { <a class="link ml-1" href="@r.TargetUrl">@T["admin.reports.open.target"]</a> }
+                    else { <span class="ml-1 text-soft">@T["admin.reports.gone"]</span> }
+                    <span class="hint ml-2">@@@r.ReporterUserName · @T.TimeAgo(r.CreatedAt)</span>
+                </p>
+                <p class="whitespace-pre-line break-words">@r.Reason</p>
+                @if (!Model.ShowClosed)
+                {
+                    <form method="post" class="flex flex-wrap gap-2">
+                        <input type="hidden" name="id" value="@r.Id" />
+                        <input type="hidden" name="showClosed" value="@Model.ShowClosed.ToString().ToLowerInvariant()" />
+                        <button class="btn btn-sm btn-primary" name="decision" value="resolve" type="submit">@T["admin.reports.resolve"]</button>
+                        <button class="btn btn-sm" name="decision" value="dismiss" type="submit">@T["admin.reports.dismiss"]</button>
+                        @if (r.Type is TargetType.Comment or TargetType.ForumPost && r.TargetUrl is not null)
+                        {
+                            <button class="btn btn-sm btn-danger" name="decision" value="delete" type="submit" data-confirm="@T["common.confirm"]">@T["admin.reports.delete"]</button>
+                        }
+                    </form>
+                }
+            </li>
+        }
+    </ul>
+}

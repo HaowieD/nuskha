@@ -4,4 +4,7 @@
     <Project Path="src/Nuskha.Infrastructure/Nuskha.Infrastructure.csproj" />
     <Project Path="src/Nuskha.Web/Nuskha.Web.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Nuskha.Tests/Nuskha.Tests.csproj" />
+  </Folder>
 </Solution>

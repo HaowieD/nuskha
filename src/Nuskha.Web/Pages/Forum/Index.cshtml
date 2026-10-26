@@ -1,0 +1,26 @@
+@page "/forum"
+@model Nuskha.Web.Pages.Forum.IndexModel
+@{ ViewData["Title"] = T["forum.title"]; }
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-2xl font-bold">@T["forum.title"]</h1>
+    @if (User.Identity!.IsAuthenticated) { <a class="btn btn-primary" href="/forum/new">@T["forum.new"]</a> }
+</div>
+
+<ul class="space-y-3">
+    @foreach (var c in Model.Categories)
+    {
+        <li class="card flex flex-wrap items-center justify-between gap-3">
+            <div class="min-w-0 flex-1">
+                <h2 class="text-lg font-bold"><a class="no-underline hover:text-accent" href="/forum/@c.Slug">@T.Pick(c.Name, c.NameEn)</a></h2>
+                <p class="text-sm text-soft">@T.Pick(c.Description ?? "", c.DescriptionEn)</p>
+            </div>
+            <div class="text-right text-sm">
+                <p>@T.Format("forum.threads", c.ThreadCount) · @T.Format("forum.posts", c.PostCount)</p>
+                @if (c.LastSlug is not null && c.LastPostAt is DateTime last)
+                {
+                    <p class="hint"><a class="link" href="/forum/thread/@c.LastSlug">@c.LastTitle</a> · @T.TimeAgo(last)</p>
+                }
+            </div>
+        </li>
+    }
+</ul>

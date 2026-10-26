@@ -1,0 +1,89 @@
+@page "/user/{username}"
+@model Nuskha.Web.Pages.Users.ProfileModel
+@{
+    var p = Model.Profile;
+    ViewData["Title"] = p.DisplayName + " (@" + p.UserName + ")";
+    ViewData["Description"] = p.Bio;
+    var total = Model.StatusCounts.Values.Sum();
+}
+<header class="card mb-6 flex flex-wrap items-start gap-5">
+    <partial name="_Avatar" model='new AvatarModel(p.AvatarPath, p.DisplayName, "lg")' />
+    <div class="min-w-0 flex-1 space-y-2">
+        <div class="flex flex-wrap items-center gap-2">
+            <h1 class="text-2xl font-bold">@p.DisplayName</h1>
+            @foreach (var role in Model.StaffRoles) { <span class="chip">@T["role." + role]</span> }
+        </div>
+        <p class="hint">@@@p.UserName · @T.Format("profile.joined", p.CreatedAt.ToString("dd.MM.yyyy")) · @T.Format("profile.following", Model.FollowingCount)</p>
+        @if (!string.IsNullOrWhiteSpace(p.Bio)) { <p class="whitespace-pre-line">@p.Bio</p> }
+        <div class="flex flex-wrap items-center gap-3 pt-1">
+            @if (Model.IsSelf)
+            {
+                <a class="btn" href="/settings">@T["profile.edit"]</a>
+            }
+            else if (User.Identity!.IsAuthenticated)
+            {
+                <partial name="_FollowButton" model="new FollowButtonModel(p.Id, Model.Following, Model.Followers)" />
+                <a class="text-xs text-soft no-underline hover:text-accent" href="/report?type=@((int)TargetType.Profile)&id=@p.Id">@T["report.link"]</a>
+            }
+            else
+            {
+                <span class="hint">@T.Format("follow.count", Model.Followers)</span>
+            }
+        </div>
+    </div>
+</header>
+
+<nav class="mb-6 flex gap-2 text-sm" aria-label="@p.DisplayName">
+    <a class="btn btn-sm border-accent text-accent" href="/user/@p.UserName" aria-current="page">@T["profile.overview"]</a>
+    @if (Model.CanSeeList) { <a class="btn btn-sm" href="/user/@p.UserName/list">@T["profile.list"] (@total)</a> }
+</nav>
+
+<div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div class="space-y-8">
+        @if (!Model.CanSeeList)
+        {
+            <p class="card text-soft">@T["profile.private"]</p>
+        }
+        else
+        {
+            <section aria-labelledby="stats-h">
+                <h2 id="stats-h" class="mb-3 text-lg font-bold">@T["profile.stats"]</h2>
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    @foreach (var s in Enum.GetValues<ReadingStatus>())
+                    {
+                        <a class="card no-underline hover:border-accent" href="/user/@p.UserName/list?status=@((int)s)">
+                            <span class="hint block">@T["status." + s]</span>
+                            <span class="block text-2xl font-bold">@Model.StatusCounts.GetValueOrDefault(s)</span>
+                        </a>
+                    }
+                    <div class="card">
+                        <span class="hint block">@T["profile.avg"]</span>
+                        <span class="block text-2xl font-bold">@(Model.AverageRating is double avg ? avg.ToString("0.0") : "—")</span>
+                    </div>
+                </div>
+            </section>
+
+            if (Model.Top.Count > 0)
+            {
+                <section aria-labelledby="top-h">
+                    <h2 id="top-h" class="mb-3 text-lg font-bold">@T["profile.top"]</h2>
+                    <div class="grid grid-cols-3 gap-4 sm:grid-cols-6">
+                        @foreach (var b in Model.Top) { <partial name="_BookCard" model="b" /> }
+                    </div>
+                </section>
+            }
+
+            <section aria-labelledby="act-h">
+                <h2 id="act-h" class="mb-3 text-lg font-bold">@T["home.activity"]</h2>
+                <div class="space-y-3">
+                    <partial name="_FeedList" model="Model.Feed" />
+                    @if (Model.Feed.Items.Count == 0) { <p class="card text-soft">@T["profile.noactivity"]</p> }
+                </div>
+            </section>
+        }
+    </div>
+
+    <aside aria-label="@T["comments.title"]">
+        <partial name="_CommentThread" model="Model.Thread" />
+    </aside>
+</div>

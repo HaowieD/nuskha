@@ -1,0 +1,41 @@
+@page "/account/login"
+@model Nuskha.Web.Pages.Account.LoginModel
+@{ ViewData["Title"] = T["auth.login"]; }
+<div class="mx-auto max-w-md space-y-4">
+    <h1 class="text-2xl font-bold">@T["auth.login"]</h1>
+
+    @if (Model.Message is not null)
+    {
+        <p class="card border-red-700 text-red-700" role="alert">@T[Model.Message]</p>
+    }
+
+    <form method="post" class="card space-y-3">
+        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+        <div>
+            <label class="label" for="Login">@T["auth.login.id"]</label>
+            <input id="Login" name="Login" value="@Model.Login" class="input" autocomplete="username" required />
+            <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Login")' />
+        </div>
+        <div>
+            <label class="label" for="Password">@T["auth.password"]</label>
+            <input id="Password" name="Password" type="password" class="input" autocomplete="current-password" required />
+        </div>
+        <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="RememberMe" value="true" checked="@Model.RememberMe" /> @T["auth.remember"]
+        </label>
+        <button class="btn btn-primary w-full" type="submit">@T["auth.login"]</button>
+    </form>
+
+    @if (Model.GoogleEnabled)
+    {
+        <p class="text-center text-sm text-soft">@T["auth.or"]</p>
+        <form method="post" asp-page="/Account/External">
+            <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+            <button class="btn w-full" type="submit">@T["auth.google"]</button>
+        </form>
+    }
+
+    <p class="text-center text-sm">
+        @T["auth.noaccount"] <a class="link" href="/account/register?returnUrl=@Uri.EscapeDataString(Model.ReturnUrl ?? "/")">@T["auth.register"]</a>
+    </p>
+</div>

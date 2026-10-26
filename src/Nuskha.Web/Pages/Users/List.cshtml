@@ -1,0 +1,68 @@
+@page "/user/{username}/list"
+@model Nuskha.Web.Pages.Users.ListModel
+@{
+    var p = Model.Profile;
+    ViewData["Title"] = T.Format("list.title", p.DisplayName);
+}
+<header class="mb-4 flex flex-wrap items-center gap-3">
+    <partial name="_Avatar" model='new AvatarModel(p.AvatarPath, p.DisplayName, "md")' />
+    <h1 class="text-2xl font-bold"><a class="no-underline hover:text-accent" href="/user/@p.UserName">@p.DisplayName</a> · @T["profile.list"]</h1>
+</header>
+
+<nav class="mb-4 flex flex-wrap items-center gap-2 text-sm" aria-label="@T["list.status"]">
+    <a class="@("btn btn-sm " + (Model.Status is null ? "border-accent text-accent" : ""))" href="/user/@p.UserName/list">@T["list.all"] (@Model.Counts.Values.Sum())</a>
+    @foreach (var s in Enum.GetValues<ReadingStatus>())
+    {
+        <a class="@("btn btn-sm " + (Model.Status == (int)s ? "border-accent text-accent" : ""))" href="/user/@p.UserName/list?status=@((int)s)">@T["status." + s] (@Model.Counts.GetValueOrDefault(s))</a>
+    }
+    <form method="get" class="ml-auto flex items-center gap-2">
+        @if (Model.Status is not null) { <input type="hidden" name="status" value="@Model.Status" /> }
+        <label class="sr-only" for="sort">@T["books.sort"]</label>
+        <select id="sort" name="sort" class="input w-auto">
+            <option value="" selected="@(string.IsNullOrEmpty(Model.Sort))">@T["list.sort.updated"]</option>
+            <option value="rating" selected="@(Model.Sort == "rating")">@T["sort.rating"]</option>
+            <option value="title" selected="@(Model.Sort == "title")">@T["sort.title"]</option>
+        </select>
+        <button class="btn btn-sm" type="submit">@T["common.search"]</button>
+    </form>
+</nav>
+
+@if (Model.Rows.Count == 0)
+{
+    <p class="card text-soft">@T["list.empty"]</p>
+}
+else
+{
+    <div class="overflow-x-auto">
+        <table class="table-simple">
+            <thead>
+                <tr>
+                    <th scope="col">@T["list.col.book"]</th>
+                    <th scope="col">@T["list.status"]</th>
+                    <th scope="col">@T["list.rating"]</th>
+                    <th scope="col">@T["list.col.progress"]</th>
+                    <th scope="col">@T["list.finished"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.Rows)
+                {
+                    var title = T.IsEnglish && !string.IsNullOrWhiteSpace(r.TitleEn) ? r.TitleEn : r.Title;
+                    <tr>
+                        <td>
+                            <a class="link font-medium" href="/books/@r.Slug">@title</a>
+                            @if (!string.IsNullOrWhiteSpace(r.FirstAuthor)) { <div class="hint">@r.FirstAuthor</div> }
+                            @if (!string.IsNullOrWhiteSpace(r.Notes)) { <div class="hint whitespace-pre-line">@r.Notes</div> }
+                            @if (r.IsPrivate) { <span class="chip">@T["list.private.short"]</span> }
+                        </td>
+                        <td><span class="chip">@T["status." + r.Status]</span></td>
+                        <td>@(r.Rating is int rating ? "★ " + rating : "—")</td>
+                        <td>@(r.PagesRead is int read ? (r.PageCount is int count ? $"{read}/{count}" : read.ToString()) : "—")</td>
+                        <td>@(r.FinishedOn?.ToString("dd.MM.yyyy") ?? "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pager" model="new PagerModel(Model.PageNo, Model.TotalPages)" />
+}

@@ -1,0 +1,21 @@
+@page "/admin"
+@model Nuskha.Web.Pages.Admin.IndexModel
+@{ ViewData["Title"] = T["admin.dashboard"]; }
+<h1 class="mb-4 text-2xl font-bold">@T["admin.dashboard"]</h1>
+
+<div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <a class="card no-underline hover:border-accent" href="/admin/books?status=0">
+        <span class="hint block">@T["admin.pending"]</span><span class="block text-3xl font-bold">@Model.PendingBooks</span>
+    </a>
+    <div class="card"><span class="hint block">@T["admin.stat.books"]</span><span class="block text-3xl font-bold">@Model.BookCount</span></div>
+    <div class="card"><span class="hint block">@T["admin.stat.authors"]</span><span class="block text-3xl font-bold">@Model.AuthorCount</span></div>
+    <div class="card"><span class="hint block">@T["admin.stat.users"]</span><span class="block text-3xl font-bold">@Model.UserCount</span></div>
+    <div class="card"><span class="hint block">@T["admin.stat.entries"]</span><span class="block text-3xl font-bold">@Model.EntryCount</span></div>
+    <div class="card"><span class="hint block">@T["admin.stat.threads"]</span><span class="block text-3xl font-bold">@Model.ThreadCount</span></div>
+    @if (User.CanModerate())
+    {
+        <a class="card no-underline hover:border-accent" href="/admin/reports">
+            <span class="hint block">@T["admin.reports.open"]</span><span class="block text-3xl font-bold">@Model.OpenReports</span>
+        </a>
+    }
+</div>
