@@ -1,6 +1,7 @@
 using Markdig;
 using Markdig.Parsers.Inlines;
 using Markdig.Renderers;
+using Markdig.Renderers.Html;
 using Markdig.Renderers.Html.Inlines;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
