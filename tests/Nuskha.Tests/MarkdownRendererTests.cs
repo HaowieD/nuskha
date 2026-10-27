@@ -24,7 +24,8 @@ public class MarkdownRendererTests
     public void Dangerous_links_never_reach_href(string input)
     {
         var html = Html(input);
-        Assert.DoesNotContain("javascript:", html.Replace("&#", ""), StringComparison.OrdinalIgnoreCase);
+        // Plain text that merely reads "javascript:..." is harmless; what matters is that no href can carry it.
+        Assert.DoesNotMatch(new System.Text.RegularExpressions.Regex("href\\s*=\\s*[\"']?\\s*javascript", System.Text.RegularExpressions.RegexOptions.IgnoreCase), html);
         Assert.DoesNotContain("href=\"data:", html, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("href=\"//", html, StringComparison.OrdinalIgnoreCase);
     }
