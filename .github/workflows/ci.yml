@@ -70,6 +70,8 @@ jobs:
           ASPNETCORE_URLS: http://localhost:5000
           ConnectionStrings__Default: Host=localhost;Port=5432;Database=nuskha;Username=nuskha;Password=nuskha
           Site__BaseUrl: http://localhost:5000
+          Logging__LogLevel__Default: Warning
+          Logging__LogLevel__Microsoft.AspNetCore: Warning
         run: |
           nohup dotnet src/Nuskha.Web/bin/Release/net10.0/Nuskha.Web.dll --contentRoot "$PWD/src/Nuskha.Web" > "$RUNNER_TEMP/app.log" 2>&1 &
           for i in $(seq 1 60); do
@@ -83,4 +85,6 @@ jobs:
         run: ./tools/smoke.sh
       - name: App log on failure
         if: failure()
-        run: tail -n 80 "$RUNNER_TEMP/app.log" | sed 's/^/::error::LOG /'
+        run: |
+          grep -iE -A8 "unhandled exception" "$RUNNER_TEMP/app.log" | head -n 60 | sed 's/^/::error::LOG /'
+          tail -n 20 "$RUNNER_TEMP/app.log" | sed 's/^/::error::TAIL /'

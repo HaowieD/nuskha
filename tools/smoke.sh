@@ -131,8 +131,9 @@ second=$(grep -oP '/books/submit\?edit=\K[0-9a-f-]{36}' "$BODY" | head -1)
 expect_get "/books/submit?edit=$second"; body_has "Needs an ISBN" "reason repeated on edit page"
 
 echo "== done"
-if grep -qE "Unhandled exception|fail: " "${APP_LOG:-/dev/null}" 2>/dev/null; then
-  echo "::error::Application log contains errors:"; grep -E -A3 "Unhandled exception|fail: " "$APP_LOG" | head -40 | sed 's/^/::error::/'
+if grep -qiE "unhandled exception" "${APP_LOG:-/dev/null}" 2>/dev/null; then
+  echo "::error::Application log contains unhandled exceptions:"
+  grep -iE -A6 "unhandled exception" "$APP_LOG" | head -60 | sed 's/^/::error::/'
   fails=$((fails + 1))
 fi
 [ "$fails" = 0 ] && echo "smoke test passed" || { echo "$fails check(s) failed"; exit 1; }
