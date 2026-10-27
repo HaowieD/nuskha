@@ -34,3 +34,53 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build -c Release --logger "console;verbosity=normal" --logger GitHubActions
+
+  smoke:
+    # Starts the real app against PostgreSQL and walks through the main flows (tools/smoke.sh).
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: nuskha
+          POSTGRES_PASSWORD: nuskha
+          POSTGRES_DB: nuskha
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U nuskha" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build CSS and vendor htmx
+        working-directory: src/Nuskha.Web
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+      - name: Build
+        run: dotnet build -c Release src/Nuskha.Web
+      - name: Start the app
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+          ASPNETCORE_URLS: http://localhost:5000
+          ConnectionStrings__Default: Host=localhost;Port=5432;Database=nuskha;Username=nuskha;Password=nuskha
+          Site__BaseUrl: http://localhost:5000
+        run: |
+          nohup dotnet src/Nuskha.Web/bin/Release/net10.0/Nuskha.Web.dll --contentRoot "$PWD/src/Nuskha.Web" > "$RUNNER_TEMP/app.log" 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:5000/healthz >/dev/null && exit 0
+            sleep 2
+          done
+          echo "::error::App did not start"; tail -n 60 "$RUNNER_TEMP/app.log" | sed 's/^/::error::/'; exit 1
+      - name: Smoke test
+        env:
+          APP_LOG: ${{ runner.temp }}/app.log
+        run: ./tools/smoke.sh
+      - name: App log on failure
+        if: failure()
+        run: tail -n 80 "$RUNNER_TEMP/app.log" | sed 's/^/::error::LOG /'
