@@ -1,7 +1,7 @@
 namespace Nuskha.Web.Pages.Me;
 
 [EnableRateLimiting("write")]
-[RequestSizeLimit(3 * 1024 * 1024)]
+[RequestSizeLimit(6 * 1024 * 1024)] // avatar + banner, 2 MB each plus form overhead
 public class SettingsModel(UserManager<AppUser> users, SignInManager<AppUser> signIn, UploadService uploads) : AppPageModel
 {
     [BindProperty] public string? DisplayName { get; set; }
@@ -10,9 +10,12 @@ public class SettingsModel(UserManager<AppUser> users, SignInManager<AppUser> si
     [BindProperty] public bool ListsArePublic { get; set; }
     [BindProperty] public bool RemoveAvatar { get; set; }
     [BindProperty] public IFormFile? Avatar { get; set; }
+    [BindProperty] public bool RemoveBanner { get; set; }
+    [BindProperty] public IFormFile? Banner { get; set; }
 
     public string UserName { get; private set; } = "";
     public string? AvatarPath { get; private set; }
+    public string? BannerPath { get; private set; }
     public bool HasPassword { get; private set; }
     public bool GoogleLinked { get; private set; }
 
@@ -36,7 +39,7 @@ public class SettingsModel(UserManager<AppUser> users, SignInManager<AppUser> si
         Bio = TextUtil.NullIfBlank(Bio);
         if (string.IsNullOrEmpty(DisplayName)) Errors[nameof(DisplayName)] = "val.required";
         else if (DisplayName.Length > 60) Errors[nameof(DisplayName)] = "val.displayname";
-        if (Bio is { Length: > 1000 }) Errors[nameof(Bio)] = "val.toolong";
+        if (Bio is { Length: > 2000 }) Errors[nameof(Bio)] = "val.toolong";
 
         string? newAvatar = null;
         if (!HasErrors && Avatar is { Length: > 0 })
@@ -44,8 +47,16 @@ public class SettingsModel(UserManager<AppUser> users, SignInManager<AppUser> si
             newAvatar = await uploads.SaveImageAsync(Avatar, "avatars", ct);
             if (newAvatar is null) Errors[nameof(Avatar)] = "val.image";
         }
+        string? newBanner = null;
+        if (!HasErrors && Banner is { Length: > 0 })
+        {
+            newBanner = await uploads.SaveImageAsync(Banner, "banners", ct);
+            if (newBanner is null) Errors[nameof(Banner)] = "val.image";
+        }
         if (HasErrors)
         {
+            // Do not leave a freshly stored avatar behind when the banner (or anything else) was rejected.
+            if (newAvatar is not null) uploads.Delete(newAvatar);
             await FillAsync(user);
             return Page();
         }
@@ -53,6 +64,9 @@ public class SettingsModel(UserManager<AppUser> users, SignInManager<AppUser> si
         user.DisplayName = DisplayName!;
         user.Bio = Bio;
         user.ListsArePublic = ListsArePublic;
+        var oldBanner = user.BannerPath;
+        if (newBanner is not null) user.BannerPath = newBanner;
+        else if (RemoveBanner) user.BannerPath = null;
         var oldAvatar = user.AvatarPath;
         if (newAvatar is not null) user.AvatarPath = newAvatar;
         else if (RemoveAvatar) user.AvatarPath = null;
@@ -65,6 +79,7 @@ public class SettingsModel(UserManager<AppUser> users, SignInManager<AppUser> si
             return Page();
         }
         if (oldAvatar is not null && oldAvatar != user.AvatarPath) uploads.Delete(oldAvatar);
+        if (oldBanner is not null && oldBanner != user.BannerPath) uploads.Delete(oldBanner);
 
         TempData["Flash"] = "settings.saved";
         return RedirectToPage();
@@ -109,6 +124,7 @@ public class SettingsModel(UserManager<AppUser> users, SignInManager<AppUser> si
     {
         UserName = user.UserName!;
         AvatarPath = user.AvatarPath;
+        BannerPath = user.BannerPath;
         HasPassword = await users.HasPasswordAsync(user);
         GoogleLinked = (await users.GetLoginsAsync(user)).Any(l => l.LoginProvider == "Google");
     }

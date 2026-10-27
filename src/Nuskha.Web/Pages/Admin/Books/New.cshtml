@@ -1,0 +1,22 @@
+@page "/admin/books/new"
+@model Nuskha.Web.Pages.Admin.Books.NewModel
+@{ ViewData["Title"] = T["admin.books.new"]; }
+<div class="max-w-2xl space-y-4">
+    <h1 class="text-2xl font-bold">@T["admin.books.new"]</h1>
+    <p class="hint">@T["admin.books.new.hint"]</p>
+
+    <form method="post" enctype="multipart/form-data" class="card space-y-3">
+        @if (Model.Errors.ContainsKey("Form"))
+        {
+            <p class="field-error" role="alert">
+                @T[Model.Errors["Form"]]
+                @if (Model.DuplicateSlug is not null) { <a class="link" href="/books/@Model.DuplicateSlug">@T["submit.open"]</a> }
+            </p>
+        }
+        <partial name="_BookForm" model="Model.View" />
+        <div class="flex gap-2">
+            <button class="btn btn-primary" type="submit">@T["common.save"]</button>
+            <a class="btn" href="/admin/books">@T["common.cancel"]</a>
+        </div>
+    </form>
+</div>

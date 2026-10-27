@@ -21,7 +21,7 @@
         </div>
         <div>
             <label class="label" for="Body">@T["forum.f.body"]</label>
-            <textarea id="Body" name="Body" rows="8" maxlength="10000" required class="input">@Model.Body</textarea>
+            <partial name="_MdEditor" model='new MdEditorModel("Body", "Body", Model.Body, 10, 10000, true)' />
             <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Body")' />
         </div>
         <button class="btn btn-primary" type="submit">@T["forum.f.create"]</button>

@@ -9,8 +9,9 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<AppUser>
     public void Configure(EntityTypeBuilder<AppUser> b)
     {
         b.Property(x => x.DisplayName).HasMaxLength(60).IsRequired();
-        b.Property(x => x.Bio).HasMaxLength(1000);
+        b.Property(x => x.Bio).HasMaxLength(2000);
         b.Property(x => x.AvatarPath).HasMaxLength(300);
+        b.Property(x => x.BannerPath).HasMaxLength(300);
         b.HasIndex(x => x.CreatedAt);
     }
 }
@@ -76,10 +77,13 @@ internal sealed class ActivityConfiguration : IEntityTypeConfiguration<ActivityE
         b.HasKey(x => x.Id);
         b.Property(x => x.Id).ValueGeneratedNever();
         b.Property(x => x.Data).HasMaxLength(100);
+        b.Property(x => x.Body).HasMaxLength(3000);
         b.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         b.HasOne(x => x.Book).WithMany().HasForeignKey(x => x.BookId).OnDelete(DeleteBehavior.Cascade);
         b.HasOne(x => x.Thread).WithMany().HasForeignKey(x => x.ThreadId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne(x => x.Recipient).WithMany().HasForeignKey(x => x.RecipientId).OnDelete(DeleteBehavior.Cascade);
         b.HasIndex(x => new { x.UserId, x.CreatedAt });
+        b.HasIndex(x => new { x.RecipientId, x.CreatedAt });
         b.HasIndex(x => x.CreatedAt);
     }
 }

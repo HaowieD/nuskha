@@ -26,11 +26,15 @@
                 }
             </nav>
         </div>
-        <div class="space-y-3">
+        @if (User.Identity.IsAuthenticated)
+        {
+            <div class="mb-3"><partial name="_StatusComposer" model='new StatusComposerModel(null, T["status.prompt.self"], T["status.placeholder"])' /></div>
+        }
+        <div id="feed-list" class="space-y-3">
             <partial name="_FeedList" model="Model.Feed" />
             @if (Model.Feed.Items.Count == 0)
             {
-                <p class="card text-soft">@(Model.Following ? T["home.following.empty"] : T["home.empty"])</p>
+                <p id="feed-empty" class="card text-soft">@(Model.Following ? T["home.following.empty"] : T["home.empty"])</p>
             }
         </div>
     </section>

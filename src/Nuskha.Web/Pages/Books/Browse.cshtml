@@ -1,0 +1,28 @@
+@page "/genres"
+@model Nuskha.Web.Pages.Books.BrowseModel
+@{ ViewData["Title"] = T["genres.title"]; }
+<div class="space-y-8">
+    <section aria-labelledby="g-h">
+        <h1 id="g-h" class="mb-3 text-2xl font-bold">@T["genres.title"]</h1>
+        <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            @foreach (var g in Model.Genres)
+            {
+                <li>
+                    <a class="card block no-underline hover:border-accent" href="/genres/@g.Slug">
+                        <span class="font-medium">@T.Pick(g.Name, g.NameEn)</span>
+                        <span class="hint block">@T.Format("tags.books", g.BookCount)</span>
+                    </a>
+                </li>
+            }
+        </ul>
+    </section>
+    @if (Model.Tags.Count > 0)
+    {
+        <section aria-labelledby="t-h">
+            <h2 id="t-h" class="mb-3 text-xl font-bold">@T["tags.popular"]</h2>
+            <p class="flex flex-wrap gap-2">
+                @foreach (var t in Model.Tags) { <a class="chip no-underline" href="/tags/@t.Slug">#@t.Name <span class="ml-1 opacity-70">@t.BookCount</span></a> }
+            </p>
+        </section>
+    }
+</div>

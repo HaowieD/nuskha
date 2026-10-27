@@ -1,0 +1,104 @@
+@model BookFormView
+@{
+    var f = Model.Form;
+}
+<div>
+    <label class="label" for="Form_Title">@T["submit.f.title"]</label>
+    <input id="Form_Title" name="Form.Title" value="@f.Title" class="input" maxlength="300" required />
+    <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Title")' />
+</div>
+<div>
+    <label class="label" for="Form_TitleEn">@T["submit.f.titleen"]</label>
+    <input id="Form_TitleEn" name="Form.TitleEn" value="@f.TitleEn" class="input" maxlength="300" />
+    <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "TitleEn")' />
+</div>
+<div>
+    <label class="label" for="Form_Authors">@T["submit.f.authors"]</label>
+    <textarea id="Form_Authors" name="Form.Authors" rows="2" class="input" required aria-describedby="authors-hint">@f.Authors</textarea>
+    <p id="authors-hint" class="hint">@T["submit.f.authors.hint"]</p>
+    <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Authors")' />
+</div>
+<div class="grid gap-3 sm:grid-cols-2">
+    <div>
+        <label class="label" for="Form_Isbn">ISBN</label>
+        <input id="Form_Isbn" name="Form.Isbn" value="@f.Isbn" class="input" maxlength="20" inputmode="numeric" />
+        <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Isbn")' />
+    </div>
+    <div>
+        <label class="label" for="Form_Publisher">@T["book.publisher"]</label>
+        <input id="Form_Publisher" name="Form.Publisher" value="@f.Publisher" class="input" maxlength="200" />
+        <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Publisher")' />
+    </div>
+    <div>
+        <label class="label" for="Form_PublishYear">@T["book.year"]</label>
+        <input id="Form_PublishYear" name="Form.PublishYear" type="number" value="@f.PublishYear" class="input" min="1000" max="2100" />
+        <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "PublishYear")' />
+    </div>
+    <div>
+        <label class="label" for="Form_PageCount">@T["book.pages"]</label>
+        <input id="Form_PageCount" name="Form.PageCount" type="number" value="@f.PageCount" class="input" min="1" max="20000" />
+        <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "PageCount")' />
+    </div>
+    @if (Model.ShowLanguage)
+    {
+        <div>
+            <label class="label" for="Form_Language">@T["admin.language"]</label>
+            <input id="Form_Language" name="Form.Language" value="@f.Language" class="input" maxlength="8" />
+        </div>
+    }
+    @if (Model.StatusOptions is { } statuses)
+    {
+        <div>
+            <label class="label" for="Form_Status">@T["list.status"]</label>
+            <select id="Form_Status" name="Form.Status" class="input">
+                @foreach (var s in statuses)
+                {
+                    <option value="@((int)s)" selected="@(s == f.Status)">@T["bookstatus." + s]</option>
+                }
+            </select>
+        </div>
+    }
+</div>
+
+<fieldset>
+    <legend class="label">@T["genres.title"]</legend>
+    <div class="flex flex-wrap gap-x-4 gap-y-1">
+        @foreach (var g in Model.Genres)
+        {
+            <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="Form.GenreIds" value="@g.Id" checked="@f.GenreIds.Contains(g.Id)" /> @T.Pick(g.Name, g.NameEn)
+            </label>
+        }
+    </div>
+    <p class="hint">@T.Format("genres.hint", CatalogService.MaxGenresPerBook)</p>
+    <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Genres")' />
+</fieldset>
+
+<div>
+    <label class="label" for="Form_Tags">@T["tags.title"]</label>
+    <input id="Form_Tags" name="Form.Tags" value="@f.Tags" class="input" maxlength="500" aria-describedby="tags-hint" />
+    <p id="tags-hint" class="hint">@T.Format("tags.hint", CatalogService.MaxTagsPerBook)</p>
+</div>
+
+<div>
+    <label class="label" for="Form_Description">@T["book.description"]</label>
+    <partial name="_MdEditor" model='new MdEditorModel("Form_Description", "Form.Description", f.Description, 6, 4000)' />
+    <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Description")' />
+</div>
+
+<div class="flex items-start gap-4">
+    @if (Model.CoverPath is not null)
+    {
+        <div class="w-24 shrink-0"><div class="cover cover-0"><img src="/uploads/@Model.CoverPath" alt="" /></div></div>
+    }
+    <div class="flex-1">
+        <label class="label" for="Form_Cover">@T["submit.f.cover"]</label>
+        <input id="Form_Cover" name="Form.Cover" type="file" accept="image/jpeg,image/png,image/webp" class="input" />
+        <p class="hint">@T["submit.f.cover.hint"]</p>
+        <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Cover")' />
+        @if (Model.CoverPath is not null)
+        {
+            <label class="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" name="Form.RemoveCover" value="true" /> @T["admin.cover.remove"]</label>
+        }
+    </div>
+</div>

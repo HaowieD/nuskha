@@ -13,6 +13,10 @@ public class NuskhaDbContext(DbContextOptions<NuskhaDbContext> options)
     public DbSet<Book> Books => Set<Book>();
     public DbSet<Author> Authors => Set<Author>();
     public DbSet<BookAuthor> BookAuthors => Set<BookAuthor>();
+    public DbSet<Genre> Genres => Set<Genre>();
+    public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<BookGenre> BookGenres => Set<BookGenre>();
+    public DbSet<BookTag> BookTags => Set<BookTag>();
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
     public DbSet<ListEntry> ListEntries => Set<ListEntry>();
     public DbSet<Follow> Follows => Set<Follow>();

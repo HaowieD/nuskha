@@ -12,7 +12,7 @@
                 <a class="font-semibold no-underline hover:text-accent" href="/user/@c.UserName">@c.DisplayName</a>
                 <span class="hint">@@@c.UserName · <time datetime="@c.CreatedAt.ToString("o")">@T.TimeAgo(c.CreatedAt)</time></span>
             </div>
-            <p class="whitespace-pre-line break-words text-sm">@c.Body</p>
+            <div class="md">@Md.Render(c.Body)</div>
             <div class="mt-1 flex flex-wrap items-center gap-2">
                 <partial name="_LikeButton" model="new LikeButtonModel(TargetType.Comment, c.Id, c.LikeCount, c.Liked)" />
                 @if (thread.ViewerId is not null)
@@ -24,7 +24,7 @@
                             <input type="hidden" name="id" value="@thread.TargetId" />
                             <input type="hidden" name="parentId" value="@c.Id" />
                             <label class="sr-only" for="@("reply-" + c.Id)">@T["comments.reply"]</label>
-                            <textarea id="@("reply-" + c.Id)" name="body" rows="2" maxlength="2000" required class="input"></textarea>
+                            <partial name="_MdEditor" model='new MdEditorModel("reply-" + c.Id, "body", null, 3, 2000, true)' />
                             <button type="submit" class="btn btn-primary btn-sm">@T["comments.post"]</button>
                         </form>
                     </details>

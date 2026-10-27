@@ -3,24 +3,36 @@
 @{
     var p = Model.Profile;
     ViewData["Title"] = p.DisplayName + " (@" + p.UserName + ")";
-    ViewData["Description"] = p.Bio;
+    ViewData["Description"] = p.Bio is { Length: > 0 } ? (p.Bio.Length > 160 ? p.Bio[..160] : p.Bio) : null;
     var total = Model.StatusCounts.Values.Sum();
+    var signedIn = User.Identity!.IsAuthenticated;
 }
-<header class="card mb-6 flex flex-wrap items-start gap-5">
-    <partial name="_Avatar" model='new AvatarModel(p.AvatarPath, p.DisplayName, "lg")' />
-    <div class="min-w-0 flex-1 space-y-2">
-        <div class="flex flex-wrap items-center gap-2">
-            <h1 class="text-2xl font-bold">@p.DisplayName</h1>
-            @foreach (var role in Model.StaffRoles) { <span class="chip">@T["role." + role]</span> }
+<header class="mb-6 overflow-hidden rounded-xl border border-line bg-card">
+    <div class="banner">
+        @if (p.BannerPath is not null)
+        {
+            <img src="/uploads/@p.BannerPath" alt="" class="h-full w-full object-cover" />
+        }
+        else
+        {
+            <div class="banner-default h-full w-full" aria-hidden="true"></div>
+        }
+    </div>
+    <div class="flex flex-wrap items-end gap-4 px-5 pb-5">
+        <div class="-mt-12 rounded-full ring-4 ring-card"><partial name="_Avatar" model='new AvatarModel(p.AvatarPath, p.DisplayName, "lg")' /></div>
+        <div class="min-w-0 flex-1 space-y-1 pt-3">
+            <div class="flex flex-wrap items-center gap-2">
+                <h1 class="text-2xl font-bold">@p.DisplayName</h1>
+                @foreach (var role in Model.StaffRoles) { <span class="chip">@T["role." + role]</span> }
+            </div>
+            <p class="hint">@@@p.UserName · @T.Format("profile.joined", p.CreatedAt.ToString("dd.MM.yyyy")) · @T.Format("profile.following", Model.FollowingCount)</p>
         </div>
-        <p class="hint">@@@p.UserName · @T.Format("profile.joined", p.CreatedAt.ToString("dd.MM.yyyy")) · @T.Format("profile.following", Model.FollowingCount)</p>
-        @if (!string.IsNullOrWhiteSpace(p.Bio)) { <p class="whitespace-pre-line">@p.Bio</p> }
-        <div class="flex flex-wrap items-center gap-3 pt-1">
+        <div class="flex flex-wrap items-center gap-3 pt-3">
             @if (Model.IsSelf)
             {
                 <a class="btn" href="/settings">@T["profile.edit"]</a>
             }
-            else if (User.Identity!.IsAuthenticated)
+            else if (signedIn)
             {
                 <partial name="_FollowButton" model="new FollowButtonModel(p.Id, Model.Following, Model.Followers)" />
                 <a class="text-xs text-soft no-underline hover:text-accent" href="/report?type=@((int)TargetType.Profile)&id=@p.Id">@T["report.link"]</a>
@@ -38,8 +50,16 @@
     @if (Model.CanSeeList) { <a class="btn btn-sm" href="/user/@p.UserName/list">@T["profile.list"] (@total)</a> }
 </nav>
 
-<div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
-    <div class="space-y-8">
+<div class="grid gap-8 lg:grid-cols-[20rem_minmax(0,1fr)]">
+    <aside class="order-2 space-y-6 lg:order-1" aria-label="@T["profile.about"]">
+        @if (!string.IsNullOrWhiteSpace(p.Bio))
+        {
+            <section class="card" aria-labelledby="about-h">
+                <h2 id="about-h" class="mb-2 text-base font-bold">@T["profile.about"]</h2>
+                <div class="md">@Md.Render(p.Bio)</div>
+            </section>
+        }
+
         @if (!Model.CanSeeList)
         {
             <p class="card text-soft">@T["profile.private"]</p>
@@ -47,18 +67,18 @@
         else
         {
             <section aria-labelledby="stats-h">
-                <h2 id="stats-h" class="mb-3 text-lg font-bold">@T["profile.stats"]</h2>
-                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <h2 id="stats-h" class="mb-2 text-base font-bold">@T["profile.stats"]</h2>
+                <div class="grid grid-cols-2 gap-2">
                     @foreach (var s in Enum.GetValues<ReadingStatus>())
                     {
-                        <a class="card no-underline hover:border-accent" href="/user/@p.UserName/list?status=@((int)s)">
+                        <a class="card py-2 no-underline hover:border-accent" href="/user/@p.UserName/list?status=@((int)s)">
                             <span class="hint block">@T["status." + s]</span>
-                            <span class="block text-2xl font-bold">@Model.StatusCounts.GetValueOrDefault(s)</span>
+                            <span class="block text-xl font-bold">@Model.StatusCounts.GetValueOrDefault(s)</span>
                         </a>
                     }
-                    <div class="card">
+                    <div class="card py-2">
                         <span class="hint block">@T["profile.avg"]</span>
-                        <span class="block text-2xl font-bold">@(Model.AverageRating is double avg ? avg.ToString("0.0") : "—")</span>
+                        <span class="block text-xl font-bold">@(Model.AverageRating is double avg ? avg.ToString("0.0") : "—")</span>
                     </div>
                 </div>
             </section>
@@ -66,24 +86,26 @@
             if (Model.Top.Count > 0)
             {
                 <section aria-labelledby="top-h">
-                    <h2 id="top-h" class="mb-3 text-lg font-bold">@T["profile.top"]</h2>
-                    <div class="grid grid-cols-3 gap-4 sm:grid-cols-6">
+                    <h2 id="top-h" class="mb-2 text-base font-bold">@T["profile.top"]</h2>
+                    <div class="grid grid-cols-3 gap-3">
                         @foreach (var b in Model.Top) { <partial name="_BookCard" model="b" /> }
                     </div>
                 </section>
             }
-
-            <section aria-labelledby="act-h">
-                <h2 id="act-h" class="mb-3 text-lg font-bold">@T["home.activity"]</h2>
-                <div class="space-y-3">
-                    <partial name="_FeedList" model="Model.Feed" />
-                    @if (Model.Feed.Items.Count == 0) { <p class="card text-soft">@T["profile.noactivity"]</p> }
-                </div>
-            </section>
         }
-    </div>
-
-    <aside aria-label="@T["comments.title"]">
-        <partial name="_CommentThread" model="Model.Thread" />
     </aside>
+
+    <section class="order-1 min-w-0 space-y-4 lg:order-2" aria-labelledby="act-h">
+        <h2 id="act-h" class="text-lg font-bold">@T["home.activity"]</h2>
+        @if (signedIn)
+        {
+            <partial name="_StatusComposer" model='Model.IsSelf
+                ? new StatusComposerModel(null, T["status.prompt.self"], T["status.placeholder"])
+                : new StatusComposerModel(p.UserName, T.Format("status.prompt.other", p.DisplayName), T["status.placeholder"])' />
+        }
+        <div id="feed-list" class="space-y-3">
+            <partial name="_FeedList" model="Model.Feed" />
+            @if (Model.Feed.Items.Count == 0) { <p id="feed-empty" class="card text-soft">@T["profile.noactivity"]</p> }
+        </div>
+    </section>
 </div>

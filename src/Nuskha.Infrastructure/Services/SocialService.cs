@@ -98,6 +98,8 @@ public class SocialService(NuskhaDbContext db)
     {
         body = body?.Trim();
         if (string.IsNullOrEmpty(body) || body.Length > MaxCommentLength) return null;
+        // Profiles have no comment section: people write status posts on a profile instead (see FeedService.PostStatusAsync).
+        if (type == TargetType.Profile) return null;
         var target = await ResolveTargetAsync(type, targetId, ct);
         if (target is null) return null;
 

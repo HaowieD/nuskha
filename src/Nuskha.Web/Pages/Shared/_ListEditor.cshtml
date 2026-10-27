@@ -43,7 +43,7 @@
     </div>
     <div>
         <label class="label" for="le-notes">@T["list.notes"]</label>
-        <textarea id="le-notes" name="notes" rows="3" maxlength="2000" class="input">@Model.Notes</textarea>
+        <partial name="_MdEditor" model='new MdEditorModel("le-notes", "notes", Model.Notes, 4, 2000)' />
     </div>
     <label class="flex items-center gap-2 text-sm">
         <input type="checkbox" name="isPrivate" value="true" checked="@Model.IsPrivate" /> @T["list.private"]

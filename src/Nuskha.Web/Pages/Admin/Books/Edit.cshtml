@@ -3,7 +3,10 @@
 @{ ViewData["Title"] = T["admin.books.edit"]; }
 <div class="max-w-2xl space-y-4">
     <h1 class="text-2xl font-bold">@T["admin.books.edit"]</h1>
-    <p class="hint"><a class="link" href="/books/@Model.Slug">/books/@Model.Slug</a> · @T["admin.slug.fixed"]</p>
+    <p class="hint">
+        <a class="link" href="/books/@Model.Slug">/books/@Model.Slug</a> · @T["admin.slug.fixed"]
+        @if (Model.SubmittedBy is not null) { <text> · @T["admin.submittedby"] <a class="link" href="/user/@Model.SubmittedBy">@@@Model.SubmittedBy</a></text> }
+    </p>
 
     <form method="post" enctype="multipart/form-data" class="card space-y-3">
         @if (Model.Errors.ContainsKey("Form"))
@@ -13,76 +16,7 @@
                 @if (Model.DuplicateSlug is not null) { <a class="link" href="/books/@Model.DuplicateSlug">@T["submit.open"]</a> }
             </p>
         }
-        <div>
-            <label class="label" for="Title">@T["submit.f.title"]</label>
-            <input id="Title" name="Title" value="@Model.Title" class="input" maxlength="300" required />
-            <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Title")' />
-        </div>
-        <div>
-            <label class="label" for="TitleEn">@T["submit.f.titleen"]</label>
-            <input id="TitleEn" name="TitleEn" value="@Model.TitleEn" class="input" maxlength="300" />
-        </div>
-        <div>
-            <label class="label" for="Authors">@T["submit.f.authors"]</label>
-            <textarea id="Authors" name="Authors" rows="3" class="input" required aria-describedby="authors-hint">@Model.Authors</textarea>
-            <p id="authors-hint" class="hint">@T["submit.f.authors.hint"]</p>
-            <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Authors")' />
-        </div>
-        <div class="grid gap-3 sm:grid-cols-2">
-            <div>
-                <label class="label" for="Isbn">ISBN</label>
-                <input id="Isbn" name="Isbn" value="@Model.Isbn" class="input" maxlength="20" />
-                <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Isbn")' />
-            </div>
-            <div>
-                <label class="label" for="Publisher">@T["book.publisher"]</label>
-                <input id="Publisher" name="Publisher" value="@Model.Publisher" class="input" maxlength="200" />
-            </div>
-            <div>
-                <label class="label" for="PublishYear">@T["book.year"]</label>
-                <input id="PublishYear" name="PublishYear" type="number" value="@Model.PublishYear" class="input" min="1000" max="2100" />
-                <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "PublishYear")' />
-            </div>
-            <div>
-                <label class="label" for="PageCount">@T["book.pages"]</label>
-                <input id="PageCount" name="PageCount" type="number" value="@Model.PageCount" class="input" min="1" max="20000" />
-                <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "PageCount")' />
-            </div>
-            <div>
-                <label class="label" for="Language">@T["admin.language"]</label>
-                <input id="Language" name="Language" value="@Model.Language" class="input" maxlength="8" />
-            </div>
-            <div>
-                <label class="label" for="Status">@T["list.status"]</label>
-                <select id="Status" name="Status" class="input">
-                    @foreach (var s in Enum.GetValues<BookStatus>())
-                    {
-                        <option value="@((int)s)" selected="@(s == Model.Status)">@T["bookstatus." + s]</option>
-                    }
-                </select>
-            </div>
-        </div>
-        <div>
-            <label class="label" for="Description">@T["book.description"]</label>
-            <textarea id="Description" name="Description" rows="6" maxlength="4000" class="input">@Model.Description</textarea>
-            <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Description")' />
-        </div>
-        <div class="flex items-start gap-4">
-            @if (Model.CoverPath is not null)
-            {
-                <div class="w-24 shrink-0"><div class="cover cover-0"><img src="/uploads/@Model.CoverPath" alt="" /></div></div>
-            }
-            <div class="flex-1">
-                <label class="label" for="Cover">@T["submit.f.cover"]</label>
-                <input id="Cover" name="Cover" type="file" accept="image/jpeg,image/png,image/webp" class="input" />
-                <p class="hint">@T["submit.f.cover.hint"]</p>
-                <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Cover")' />
-                @if (Model.CoverPath is not null)
-                {
-                    <label class="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" name="RemoveCover" value="true" /> @T["admin.cover.remove"]</label>
-                }
-            </div>
-        </div>
+        <partial name="_BookForm" model="Model.View" />
         <div class="flex gap-2">
             <button class="btn btn-primary" type="submit">@T["common.save"]</button>
             <a class="btn" href="/admin/books">@T["common.cancel"]</a>

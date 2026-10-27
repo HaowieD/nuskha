@@ -1,43 +1,69 @@
 namespace Nuskha.Web.Pages.Books;
 
-/// <summary>Any signed-in reader can propose a missing book; it stays hidden until an editor or moderator publishes it.</summary>
+/// <summary>
+/// Any signed-in reader can propose a missing book. It stays out of the catalog until staff approve it. The submitter
+/// can also reopen a pending or rejected submission (?edit={id}), fix it and send it back for review.
+/// </summary>
 [Authorize]
 [EnableRateLimiting("write")]
 [RequestSizeLimit(3 * 1024 * 1024)]
-public class SubmitModel(NuskhaDbContext db, SlugService slugs, CatalogService catalog, UploadService uploads) : AppPageModel
+public class SubmitModel(NuskhaDbContext db, BookFormService forms, CatalogService catalog, UploadService uploads) : AppPageModel
 {
-    [BindProperty] public string? Title { get; set; }
-    [BindProperty] public string? TitleEn { get; set; }
-    /// <summary>One author per line.</summary>
-    [BindProperty] public string? Authors { get; set; }
-    [BindProperty] public string? Isbn { get; set; }
-    [BindProperty] public string? Publisher { get; set; }
-    [BindProperty] public int? PublishYear { get; set; }
-    [BindProperty] public int? PageCount { get; set; }
-    [BindProperty] public string? Description { get; set; }
-    [BindProperty] public IFormFile? Cover { get; set; }
+    [BindProperty] public BookForm Form { get; set; } = new();
+    [BindProperty] public Guid? EditId { get; set; }
 
     public bool Done { get; private set; }
     public string? DuplicateSlug { get; private set; }
+    public string? CoverPath { get; private set; }
+    public string? ReviewNote { get; private set; }
+    public List<Genre> Genres { get; private set; } = [];
 
-    public void OnGet() { }
+    public BookFormView View => new(Form, Errors, Genres, false, null, CoverPath);
+
+    public async Task<IActionResult> OnGetAsync(Guid? edit, CancellationToken ct)
+    {
+        Genres = await forms.GenresAsync(ct);
+        if (edit is not Guid id) return Page();
+
+        var me = CurrentUserId!.Value;
+        var book = await db.Books.AsNoTracking().FirstOrDefaultAsync(b => b.Id == id && b.SubmittedById == me
+            && (b.Status == BookStatus.Pending || b.Status == BookStatus.Rejected), ct);
+        if (book is null) return NotFound();
+
+        EditId = book.Id;
+        CoverPath = book.CoverPath;
+        ReviewNote = book.Status == BookStatus.Rejected ? book.ReviewNote : null;
+        Form = await forms.LoadFormAsync(book, ct);
+        return Page();
+    }
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        var title = TextUtil.NullIfBlank(Title);
-        var authorNames = (Authors ?? "").Split(['\r', '\n', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-        var isbn = IsbnHelper.Normalize(Isbn);
+        var me = CurrentUserId!.Value;
+        Genres = await forms.GenresAsync(ct);
 
-        if (title is null) Errors[nameof(Title)] = "val.required";
-        else if (title.Length > 300) Errors[nameof(Title)] = "val.toolong";
-        if (authorNames.Count == 0) Errors[nameof(Authors)] = "val.required";
-        if (!string.IsNullOrWhiteSpace(Isbn) && isbn is null) Errors[nameof(Isbn)] = "val.isbn";
-        if (PublishYear is not null && (PublishYear < 1000 || PublishYear > DateTime.UtcNow.Year + 1)) Errors[nameof(PublishYear)] = "val.year";
-        if (PageCount is not null && (PageCount < 1 || PageCount > 20000)) Errors[nameof(PageCount)] = "val.number";
-        if (Description is { Length: > 4000 }) Errors[nameof(Description)] = "val.toolong";
-        if (HasErrors) return Page();
+        Book? existing = null;
+        if (EditId is Guid id)
+        {
+            existing = await db.Books.FirstOrDefaultAsync(b => b.Id == id && b.SubmittedById == me
+                && (b.Status == BookStatus.Pending || b.Status == BookStatus.Rejected), ct);
+            if (existing is null) return NotFound();
+            CoverPath = existing.CoverPath;
+        }
+        else if (!User.IsStaff())
+        {
+            var pending = await db.Books.CountAsync(b => b.SubmittedById == me && b.Status == BookStatus.Pending, ct);
+            if (pending >= BookReviewService.MaxPendingPerUser)
+            {
+                Errors["Form"] = "submit.limit";
+                return Page();
+            }
+        }
 
-        var duplicate = await catalog.FindDuplicateAsync(title!, authorNames.FirstOrDefault(), isbn, null, ct);
+        var valid = forms.Validate(Form, Errors, allowLanguage: false);
+        if (valid is null) return Page();
+
+        var duplicate = await catalog.FindDuplicateAsync(valid.Title, valid.Authors[0], valid.Isbn, existing?.Id, ct);
         if (duplicate is not null)
         {
             DuplicateSlug = duplicate.Status == BookStatus.Published ? duplicate.Slug : null;
@@ -45,36 +71,34 @@ public class SubmitModel(NuskhaDbContext db, SlugService slugs, CatalogService c
             return Page();
         }
 
-        string? coverPath = null;
-        if (Cover is { Length: > 0 })
+        string? newCover = null;
+        if (Form.Cover is { Length: > 0 })
         {
-            coverPath = await uploads.SaveImageAsync(Cover, "covers", ct);
-            if (coverPath is null)
+            newCover = await uploads.SaveImageAsync(Form.Cover, "covers", ct);
+            if (newCover is null)
             {
-                Errors[nameof(Cover)] = "val.image";
+                Errors["Cover"] = "val.image";
                 return Page();
             }
         }
 
-        var book = new Book
+        if (existing is null)
         {
-            Title = title!,
-            TitleEn = TextUtil.NullIfBlank(TitleEn),
-            Slug = await slugs.BookSlugAsync(title!, null, ct),
-            Isbn = isbn,
-            Publisher = TextUtil.NullIfBlank(Publisher),
-            PublishYear = PublishYear,
-            PageCount = PageCount,
-            Description = TextUtil.NullIfBlank(Description),
-            CoverPath = coverPath,
-            NormalizedKey = TextUtil.BookKey(title!, authorNames.FirstOrDefault()),
-            Status = BookStatus.Pending,
-            SubmittedById = CurrentUserId,
-            Source = "user",
-        };
-        await catalog.SetAuthorsAsync(book, authorNames, ct);
-        db.Books.Add(book);
-        await db.SaveChangesAsync(ct);
+            await forms.CreateAsync(valid, newCover, BookStatus.Pending, me, "user", tagsAsSubmitted: true, ct);
+        }
+        else
+        {
+            var oldCover = existing.CoverPath;
+            if (newCover is not null) existing.CoverPath = newCover;
+            else if (Form.RemoveCover) existing.CoverPath = null;
+            // Resubmitting puts it back in the queue and clears the previous verdict.
+            existing.Status = BookStatus.Pending;
+            existing.ReviewNote = null;
+            existing.ReviewedById = null;
+            existing.ReviewedAt = null;
+            await forms.UpdateAsync(existing, valid, tagsAsSubmitted: true, ct);
+            if (oldCover is not null && oldCover != existing.CoverPath) uploads.Delete(oldCover);
+        }
 
         Done = true;
         return Page();

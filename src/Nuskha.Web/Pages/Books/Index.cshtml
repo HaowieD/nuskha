@@ -2,12 +2,25 @@
 @model Nuskha.Web.Pages.Books.IndexModel
 @{ ViewData["Title"] = T["books.title"]; }
 <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
-    <h1 class="text-2xl font-bold">@T["books.title"]</h1>
+    <h1 class="text-2xl font-bold">
+        @T["books.title"]
+        @if (Model.ActiveGenre is { } ag) { <span class="text-soft">· @T.Pick(ag.Name, ag.NameEn)</span> }
+        @if (Model.ActiveTagName is { } at) { <span class="text-soft">· #@at</span> }
+    </h1>
     @if (User.Identity!.IsAuthenticated)
     {
         <a class="btn btn-primary" href="/books/submit">@T["books.submit"]</a>
     }
 </div>
+
+<nav aria-label="@T["genres.title"]" class="mb-4 flex flex-wrap gap-2">
+    <a class="@("chip no-underline " + (Model.ActiveGenre is null && Model.ActiveTagName is null ? "ring-2 ring-accent" : ""))" href="/books">@T["list.all"]</a>
+    @foreach (var g in Model.Genres)
+    {
+        <a class="@("chip no-underline " + (Model.ActiveGenre?.Slug == g.Slug ? "ring-2 ring-accent" : ""))" href="/genres/@g.Slug"
+           aria-current="@(Model.ActiveGenre?.Slug == g.Slug ? "page" : null)">@T.Pick(g.Name, g.NameEn)</a>
+    }
+</nav>
 
 <form method="get" role="search" class="card mb-6 grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
     <div>

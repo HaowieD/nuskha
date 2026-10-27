@@ -7,15 +7,39 @@ public class IndexModel(NuskhaDbContext db) : AppPageModel
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
     [BindProperty(SupportsGet = true)] public string? Sort { get; set; }
     [BindProperty(SupportsGet = true, Name = "p")] public int PageNo { get; set; } = 1;
+    /// <summary>Genre slug; reachable as /books?genre=x or /genres/x.</summary>
+    [BindProperty(SupportsGet = true)] public string? Genre { get; set; }
+    /// <summary>Tag slug; reachable as /books?tag=x or /tags/x.</summary>
+    [BindProperty(SupportsGet = true)] public string? Tag { get; set; }
+
+    public record GenreChip(string Slug, string Name, string? NameEn);
+    public List<GenreChip> Genres { get; private set; } = [];
+    public GenreChip? ActiveGenre { get; private set; }
+    public string? ActiveTagName { get; private set; }
 
     public List<BookListItem> Books { get; private set; } = [];
     public int Total { get; private set; }
     public int TotalPages => Math.Max(1, (int)Math.Ceiling(Total / (double)PageSize));
 
-    public async Task OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         PageNo = Math.Max(1, PageNo);
         var query = db.Books.AsNoTracking().Where(b => b.Status == BookStatus.Published);
+
+        Genres = await db.Genres.AsNoTracking().OrderBy(g => g.SortOrder).ThenBy(g => g.Name)
+            .Select(g => new GenreChip(g.Slug, g.Name, g.NameEn)).ToListAsync(ct);
+        if (!string.IsNullOrWhiteSpace(Genre))
+        {
+            ActiveGenre = Genres.FirstOrDefault(g => g.Slug == Genre);
+            if (ActiveGenre is null) return NotFound();
+            query = query.Where(b => b.Genres.Any(x => x.Genre.Slug == Genre));
+        }
+        if (!string.IsNullOrWhiteSpace(Tag))
+        {
+            ActiveTagName = await db.Tags.AsNoTracking().Where(t => t.Slug == Tag).Select(t => t.Name).FirstOrDefaultAsync(ct);
+            if (ActiveTagName is null) return NotFound();
+            query = query.Where(b => b.Tags.Any(x => x.Tag.Slug == Tag));
+        }
 
         if (!string.IsNullOrWhiteSpace(Q))
         {
@@ -39,5 +63,6 @@ public class IndexModel(NuskhaDbContext db) : AppPageModel
 
         Total = await ordered.CountAsync(ct);
         Books = await ordered.Skip((PageNo - 1) * PageSize).Take(PageSize).ToListItems().ToListAsync(ct);
+        return Page();
     }
 }

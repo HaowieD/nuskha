@@ -13,7 +13,7 @@
     }
     @if (!string.IsNullOrWhiteSpace(Model.Author.Bio))
     {
-        <p class="max-w-2xl whitespace-pre-line">@Model.Author.Bio</p>
+        <div class="md max-w-2xl">@Md.Render(Model.Author.Bio)</div>
     }
 </header>
 

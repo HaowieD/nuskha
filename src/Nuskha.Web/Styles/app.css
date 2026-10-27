@@ -112,3 +112,9 @@
   .md x-spoiler.revealed { @apply bg-accentsoft text-ink select-text; }
   .md x-spoiler.revealed a { @apply text-accent; }
 }
+
+/* ---- Profile banner ---- */
+@layer components {
+  .banner { @apply h-32 w-full overflow-hidden bg-accentsoft sm:h-48; }
+  .banner-default { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%); }
+}

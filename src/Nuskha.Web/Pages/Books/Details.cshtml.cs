@@ -9,6 +9,8 @@ public class DetailsModel(NuskhaDbContext db, ListService lists, SocialService s
     public LikeState Likes { get; private set; } = new(false, 0);
     public CommentThreadModel Thread { get; private set; } = null!;
     public List<ReaderVm> Readers { get; private set; } = [];
+    public List<Genre> Genres { get; private set; } = [];
+    public List<Tag> Tags { get; private set; } = [];
 
     public async Task<IActionResult> OnGetAsync(string slug, CancellationToken ct)
     {
@@ -24,6 +26,9 @@ public class DetailsModel(NuskhaDbContext db, ListService lists, SocialService s
             ? new ListEditorModel { BookId = book.Id, Slug = book.Slug }
             : EditorFrom(entry, book.Slug, saved: false);
 
+        Genres = await db.BookGenres.AsNoTracking().Where(x => x.BookId == book.Id).Select(x => x.Genre)
+            .OrderBy(g => g.SortOrder).ToListAsync(ct);
+        Tags = await db.BookTags.AsNoTracking().Where(x => x.BookId == book.Id).Select(x => x.Tag).OrderBy(t => t.Name).ToListAsync(ct);
         Likes = await social.GetLikeStateAsync(me, TargetType.Book, book.Id, ct);
         Readers = await db.ListEntries.AsNoTracking()
             .Where(e => e.BookId == book.Id && !e.IsPrivate && e.User.ListsArePublic)

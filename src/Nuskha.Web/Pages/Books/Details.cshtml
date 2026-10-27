@@ -75,6 +75,14 @@
             </p>
         </header>
 
+        @if (Model.Genres.Count > 0 || Model.Tags.Count > 0)
+        {
+            <p class="flex flex-wrap gap-2">
+                @foreach (var g in Model.Genres) { <a class="chip no-underline" href="/genres/@g.Slug">@T.Pick(g.Name, g.NameEn)</a> }
+                @foreach (var t in Model.Tags) { <a class="chip bg-paper2! text-soft! no-underline" href="/tags/@t.Slug">#@t.Name</a> }
+            </p>
+        }
+
         <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-4">
             @if (b.PublishYear is not null) { <div><dt class="hint">@T["book.year"]</dt><dd>@b.PublishYear</dd></div> }
             @if (!string.IsNullOrWhiteSpace(b.Publisher)) { <div><dt class="hint">@T["book.publisher"]</dt><dd>@b.Publisher</dd></div> }
@@ -86,7 +94,7 @@
         {
             <section aria-labelledby="desc-h">
                 <h2 id="desc-h" class="mb-1 text-lg font-bold">@T["book.description"]</h2>
-                <p class="whitespace-pre-line">@b.Description</p>
+                <div class="md">@Md.Render(b.Description)</div>
             </section>
         }
 

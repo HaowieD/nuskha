@@ -1,6 +1,6 @@
 namespace Nuskha.Web.Pages.Users;
 
-public class ProfileModel(NuskhaDbContext db, FeedService feed, CommentQueryService comments) : AppPageModel
+public class ProfileModel(NuskhaDbContext db, FeedService feed) : AppPageModel
 {
     public const int PageSize = 15;
 
@@ -15,7 +15,6 @@ public class ProfileModel(NuskhaDbContext db, FeedService feed, CommentQueryServ
     public double? AverageRating { get; private set; }
     public List<BookListItem> Top { get; private set; } = [];
     public FeedPageModel Feed { get; private set; } = new();
-    public CommentThreadModel Thread { get; private set; } = null!;
 
     public async Task<IActionResult> OnGetAsync(string username, CancellationToken ct)
     {
@@ -48,17 +47,10 @@ public class ProfileModel(NuskhaDbContext db, FeedService feed, CommentQueryServ
             Top = await visible.Where(e => e.Rating != null)
                 .OrderByDescending(e => e.Rating).ThenByDescending(e => e.UpdatedAt).Take(6)
                 .Select(e => e.Book).ToListItems().ToListAsync(ct);
-            Feed = await LoadFeedAsync(user, 0, ct);
         }
 
-        Thread = new CommentThreadModel
-        {
-            Type = TargetType.Profile,
-            TargetId = user.Id,
-            ViewerId = me,
-            IsModerator = User.CanModerate(),
-            Comments = await comments.GetAsync(TargetType.Profile, user.Id, me, 200, ct),
-        };
+        // Status posts are public even when the reading list is private; the feed query hides list activity itself.
+        Feed = await LoadFeedAsync(user, 0, ct);
         return Page();
     }
 
@@ -67,8 +59,6 @@ public class ProfileModel(NuskhaDbContext db, FeedService feed, CommentQueryServ
     {
         var user = await FindAsync(username, ct);
         if (user is null) return NotFound();
-        var canSee = user.ListsArePublic || CurrentUserId == user.Id || User.CanModerate();
-        if (!canSee) return Partial("_FeedList", new FeedPageModel());
         return Partial("_FeedList", await LoadFeedAsync(user, Math.Max(0, skip), ct));
     }
 

@@ -1,0 +1,7 @@
+@model StatusComposerModel
+<form hx-post="/social/status" hx-target="#feed-list" hx-swap="afterbegin" data-reset-on-success class="card space-y-2">
+    <input type="hidden" name="to" value="@Model.To" />
+    <label class="label" for="status-body">@Model.Label</label>
+    <partial name="_MdEditor" model='new MdEditorModel("status-body", "body", null, 3, FeedService.MaxStatusLength, true, Model.Placeholder)' />
+    <button class="btn btn-primary btn-sm" type="submit">@T["status.post"]</button>
+</form>

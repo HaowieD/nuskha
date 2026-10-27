@@ -5,7 +5,10 @@
     var canEdit = User.CanManageCatalog();
     var isAdmin = User.IsInRole(Roles.Admin);
 }
-<h1 class="mb-4 text-2xl font-bold">@T["admin.books"] <span class="text-soft">(@Model.Total)</span></h1>
+<div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+    <h1 class="text-2xl font-bold">@T["admin.books"] <span class="text-soft">(@Model.Total)</span></h1>
+    @if (canEdit) { <a class="btn btn-primary" href="/admin/books/new">@T["admin.books.new"]</a> }
+</div>
 
 <form method="get" role="search" class="card mb-4 grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
     <div>

@@ -67,3 +67,31 @@ public record AuthorListItem(string Slug, string Name, string? NameEn, int BookC
 
 /// <summary>A markup textarea with a formatting toolbar and preview. <see cref="Name"/> is the posted field name.</summary>
 public record MdEditorModel(string Id, string Name, string? Value, int Rows = 4, int MaxLength = 2000, bool Required = false, string? Placeholder = null);
+
+/// <summary>Posted fields shared by the reader submission form and the admin create/edit forms (bound as "Form.*").</summary>
+public class BookForm
+{
+    public string? Title { get; set; }
+    public string? TitleEn { get; set; }
+    /// <summary>One author per line.</summary>
+    public string? Authors { get; set; }
+    public string? Isbn { get; set; }
+    public string? Publisher { get; set; }
+    public int? PublishYear { get; set; }
+    public int? PageCount { get; set; }
+    public string? Language { get; set; }
+    public string? Description { get; set; }
+    public List<Guid> GenreIds { get; set; } = [];
+    /// <summary>Comma-separated tag names.</summary>
+    public string? Tags { get; set; }
+    public BookStatus Status { get; set; } = BookStatus.Published;
+    public bool RemoveCover { get; set; }
+    public Microsoft.AspNetCore.Http.IFormFile? Cover { get; set; }
+}
+
+/// <param name="StatusOptions">Statuses a staff member may choose between; null hides the status picker (reader form).</param>
+public record BookFormView(BookForm Form, Dictionary<string, string> Errors, List<Nuskha.Domain.Entities.Genre> Genres,
+    bool ShowLanguage, IReadOnlyList<BookStatus>? StatusOptions, string? CoverPath);
+
+/// <param name="To">User name of the profile being written on, or null for your own feed.</param>
+public record StatusComposerModel(string? To, string Label, string? Placeholder = null);

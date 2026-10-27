@@ -8,11 +8,15 @@
         ActivityType.Rated => T.Format("activity.rated", Model.Data ?? "?"),
         ActivityType.Completed => T["activity.completed"],
         ActivityType.ThreadCreated => T["activity.thread"],
+        ActivityType.StatusPost => "",
         _ => ""
     };
     var statusLabel = (Model.Type is ActivityType.AddedToList or ActivityType.StatusChanged) && Model.Data is not null
         ? T["status." + Model.Data] : null;
     var dom = "comments-" + (int)TargetType.Activity + "-" + Model.Id;
+    var me = User.GetUserId();
+    var isPost = Model.Type == ActivityType.StatusPost;
+    var canDelete = isPost && me is not null && (me == Model.UserId || me == Model.RecipientId || User.CanModerate());
 }
 <article class="card" id="@("activity-" + Model.Id)">
     <div class="flex items-start gap-3">
@@ -20,6 +24,11 @@
         <div class="min-w-0 flex-1">
             <p class="text-sm">
                 <a class="font-semibold no-underline hover:text-accent" href="/user/@Model.UserName">@Model.DisplayName</a>
+                @if (isPost && Model.RecipientUserName is not null)
+                {
+                    <span class="text-soft" aria-label="@T["status.to"]">▸</span>
+                    <a class="font-semibold no-underline hover:text-accent" href="/user/@Model.RecipientUserName">@Model.RecipientDisplayName</a>
+                }
                 <span class="text-soft">@verb</span>
                 @if (Model.BookSlug is not null)
                 {
@@ -32,13 +41,23 @@
                 @if (statusLabel is not null) { <span class="chip ml-1">@statusLabel</span> }
                 @if (Model.Type == ActivityType.Completed && !string.IsNullOrEmpty(Model.Data)) { <span class="chip ml-1">★ @Model.Data/10</span> }
             </p>
-            <p class="hint"><time datetime="@Model.CreatedAt.ToString("o")">@T.TimeAgo(Model.CreatedAt)</time></p>
+            @if (isPost) { <div class="md mt-1">@Md.Render(Model.Body)</div> }
+            <p class="hint mt-1"><time datetime="@Model.CreatedAt.ToString("o")">@T.TimeAgo(Model.CreatedAt)</time></p>
             <div class="mt-2 flex items-center gap-2">
                 <partial name="_LikeButton" model="new LikeButtonModel(TargetType.Activity, Model.Id, Model.LikeCount, Model.Liked)" />
                 <button type="button" class="btn btn-sm" hx-get="/social/comments?type=@((int)TargetType.Activity)&id=@Model.Id"
                         hx-target="#@dom" hx-swap="outerHTML">
                     @T["comments.title"] (@Model.CommentCount)
                 </button>
+                @if (canDelete)
+                {
+                    <button type="button" class="text-xs text-soft hover:text-red-700" hx-post="/social/status?handler=Delete&id=@Model.Id"
+                            hx-target="#activity-@Model.Id" hx-swap="outerHTML" hx-confirm="@T["common.confirm"]">@T["common.delete"]</button>
+                }
+                @if (isPost && me is not null && me != Model.UserId)
+                {
+                    <a class="text-xs text-soft no-underline hover:text-accent" href="/report?type=@((int)TargetType.Activity)&id=@Model.Id">@T["report.link"]</a>
+                }
             </div>
             <div id="@dom" class="mt-3"></div>
         </div>

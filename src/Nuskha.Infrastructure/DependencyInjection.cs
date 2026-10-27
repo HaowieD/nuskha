@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<SocialService>();
         services.AddScoped<FeedService>();
         services.AddScoped<CatalogService>();
+        services.AddScoped<BookReviewService>();
         services.AddScoped<CommentQueryService>();
 
         services.Configure<ImportOptions>(config.GetSection(ImportOptions.Section));

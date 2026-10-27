@@ -5,10 +5,12 @@
     <nav aria-label="@T["nav.admin"]" class="space-y-1 text-sm font-medium">
         <p class="hint uppercase tracking-wide">@T["nav.admin"]</p>
         <a class="block rounded px-3 py-2 no-underline hover:bg-paper2" href="/admin">@T["admin.dashboard"]</a>
+        <a class="block rounded px-3 py-2 no-underline hover:bg-paper2" href="/admin/review">@T["admin.review"]</a>
         <a class="block rounded px-3 py-2 no-underline hover:bg-paper2" href="/admin/books">@T["admin.books"]</a>
         @if (User.CanManageCatalog())
         {
             <a class="block rounded px-3 py-2 no-underline hover:bg-paper2" href="/admin/authors">@T["admin.authors"]</a>
+            <a class="block rounded px-3 py-2 no-underline hover:bg-paper2" href="/admin/taxonomy">@T["admin.taxonomy"]</a>
             <a class="block rounded px-3 py-2 no-underline hover:bg-paper2" href="/admin/import">@T["admin.import"]</a>
         }
         @if (User.CanModerate())

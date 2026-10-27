@@ -110,12 +110,16 @@ builder.Services.AddRateLimiter(o =>
 builder.Services.AddSingleton<ILoc, JsonLoc>();
 builder.Services.AddSingleton<UploadService>();
 builder.Services.AddSingleton<IMarkdown, MarkdownRenderer>();
+builder.Services.AddScoped<BookFormService>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddRazorPages(o =>
 {
     o.Conventions.AuthorizeFolder("/Admin", Policies.Staff);
     o.Conventions.AuthorizeFolder("/Me");
+    // Genre and tag pages are the book list filtered by a readable name in the URL.
+    o.Conventions.AddPageRoute("/Books/Index", "/genres/{genre}");
+    o.Conventions.AddPageRoute("/Books/Index", "/tags/{tag}");
 });
 
 var app = builder.Build();

@@ -22,6 +22,20 @@
                 </div>
             </div>
             <div>
+                <label class="label" for="Banner">@T["settings.banner"]</label>
+                <div class="banner mb-2 rounded-lg">
+                    @if (Model.BannerPath is not null) { <img src="/uploads/@Model.BannerPath" alt="" class="h-full w-full object-cover" /> }
+                    else { <div class="banner-default h-full w-full" aria-hidden="true"></div> }
+                </div>
+                <input id="Banner" name="Banner" type="file" accept="image/jpeg,image/png,image/webp" class="input" />
+                <p class="hint">@T["settings.banner.hint"]</p>
+                <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Banner")' />
+                @if (Model.BannerPath is not null)
+                {
+                    <label class="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" name="RemoveBanner" value="true" /> @T["settings.banner.remove"]</label>
+                }
+            </div>
+            <div>
                 <label class="label" for="DisplayName">@T["auth.displayname"]</label>
                 <input id="DisplayName" name="DisplayName" value="@Model.DisplayName" maxlength="60" required class="input" />
                 <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "DisplayName")' />
@@ -33,7 +47,7 @@
             </div>
             <div>
                 <label class="label" for="Bio">@T["settings.bio"]</label>
-                <textarea id="Bio" name="Bio" rows="4" maxlength="1000" class="input">@Model.Bio</textarea>
+                <partial name="_MdEditor" model='new MdEditorModel("Bio", "Bio", Model.Bio, 5, 2000)' />
                 <partial name="_FieldError" model='new FieldErrorModel(Model.Errors, "Bio")' />
             </div>
             <label class="flex items-center gap-2 text-sm">

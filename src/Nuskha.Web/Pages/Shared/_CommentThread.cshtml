@@ -17,7 +17,7 @@
             <input type="hidden" name="type" value="@((int)Model.Type)" />
             <input type="hidden" name="id" value="@Model.TargetId" />
             <label class="sr-only" for="@("body-" + dom)">@T["comments.write"]</label>
-            <textarea id="@("body-" + dom)" name="body" rows="2" maxlength="2000" required class="input" placeholder="@T["comments.write"]"></textarea>
+            <partial name="_MdEditor" model='new MdEditorModel("body-" + dom, "body", null, 3, 2000, true, T["comments.write"])' />
             <button type="submit" class="btn btn-primary btn-sm">@T["comments.post"]</button>
         </form>
     }

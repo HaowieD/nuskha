@@ -1,7 +1,7 @@
 namespace Nuskha.Web.Pages.Admin;
 
 [Authorize(Policy = Policies.Moderate)]
-public class ReportsModel(NuskhaDbContext db, SocialService social) : AppPageModel
+public class ReportsModel(NuskhaDbContext db, SocialService social, FeedService feed) : AppPageModel
 {
     public record Row(Guid Id, TargetType Type, Guid TargetId, string Reason, DateTime CreatedAt, string ReporterUserName, string? TargetUrl);
 
@@ -44,6 +44,10 @@ public class ReportsModel(NuskhaDbContext db, SocialService social) : AppPageMod
                     await social.DeleteCommentAsync(report.TargetId, me, isModerator: true, ct);
                 else if (report.TargetType == TargetType.ForumPost)
                     await db.ForumPosts.Where(p => p.Id == report.TargetId).ExecuteUpdateAsync(s => s.SetProperty(p => p.IsDeleted, true), ct);
+                else if (report.TargetType == TargetType.Activity)
+                {
+                    if (!await feed.DeleteStatusAsync(report.TargetId, me, isModerator: true, ct)) return BadRequest();
+                }
                 else
                     return BadRequest();
                 report.Status = ReportStatus.Resolved;

@@ -1,0 +1,86 @@
+@page "/admin/taxonomy"
+@model Nuskha.Web.Pages.Admin.TaxonomyModel
+@{ ViewData["Title"] = T["admin.taxonomy"]; }
+<div class="space-y-8">
+    <h1 class="text-2xl font-bold">@T["admin.taxonomy"]</h1>
+    @if (Model.Errors.ContainsKey("Form")) { <p class="field-error" role="alert">@T[Model.Errors["Form"]]</p> }
+
+    <section aria-labelledby="genres-h" class="space-y-3">
+        <h2 id="genres-h" class="text-lg font-bold">@T["genres.title"]</h2>
+        <p class="hint">@T["admin.genres.hint"]</p>
+        <div class="overflow-x-auto">
+            <table class="table-simple">
+                <thead>
+                    <tr>
+                        <th scope="col">@T["admin.genre.name"]</th>
+                        <th scope="col">@T["admin.genre.nameen"]</th>
+                        <th scope="col">@T["admin.genre.order"]</th>
+                        <th scope="col">@T["admin.books"]</th>
+                        <th scope="col"><span class="sr-only">@T["admin.actions"]</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var g in Model.Genres)
+                    {
+                        <tr>
+                            <td colspan="3">
+                                <form method="post" asp-page-handler="SaveGenre" class="grid grid-cols-[1fr_1fr_5rem_auto] items-center gap-2">
+                                    <input type="hidden" name="id" value="@g.Id" />
+                                    <label class="sr-only" for="@("gn-" + g.Id)">@T["admin.genre.name"]</label>
+                                    <input id="@("gn-" + g.Id)" name="name" value="@g.Name" class="input" maxlength="100" required />
+                                    <label class="sr-only" for="@("ge-" + g.Id)">@T["admin.genre.nameen"]</label>
+                                    <input id="@("ge-" + g.Id)" name="nameEn" value="@g.NameEn" class="input" maxlength="100" />
+                                    <label class="sr-only" for="@("go-" + g.Id)">@T["admin.genre.order"]</label>
+                                    <input id="@("go-" + g.Id)" name="sortOrder" type="number" value="@g.SortOrder" class="input" />
+                                    <button class="btn btn-sm btn-primary" type="submit">@T["common.save"]</button>
+                                </form>
+                            </td>
+                            <td><a class="link" href="/genres/@g.Slug">@g.BookCount</a></td>
+                            <td>
+                                <form method="post" asp-page-handler="DeleteGenre">
+                                    <input type="hidden" name="id" value="@g.Id" />
+                                    <button class="btn btn-sm btn-danger" type="submit" data-confirm="@T["common.confirm"]">@T["common.delete"]</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <form method="post" asp-page-handler="AddGenre" class="card grid gap-2 sm:grid-cols-[1fr_1fr_6rem_auto]">
+            <div><label class="label" for="new-gn">@T["admin.genre.name"]</label><input id="new-gn" name="name" class="input" maxlength="100" required /></div>
+            <div><label class="label" for="new-ge">@T["admin.genre.nameen"]</label><input id="new-ge" name="nameEn" class="input" maxlength="100" /></div>
+            <div><label class="label" for="new-go">@T["admin.genre.order"]</label><input id="new-go" name="sortOrder" type="number" value="1000" class="input" /></div>
+            <div class="flex items-end"><button class="btn btn-primary w-full" type="submit">@T["admin.genre.add"]</button></div>
+        </form>
+    </section>
+
+    <section aria-labelledby="tags-h" class="space-y-3">
+        <h2 id="tags-h" class="text-lg font-bold">@T["tags.title"]</h2>
+        <p class="hint">@T["admin.tags.hint"]</p>
+        <form method="get" role="search" class="flex gap-2">
+            <label class="sr-only" for="q">@T["common.search"]</label>
+            <input id="q" name="q" type="search" value="@Model.Q" class="input max-w-xs" />
+            <button class="btn" type="submit">@T["common.search"]</button>
+        </form>
+        @if (Model.Tags.Count == 0) { <p class="card text-soft">@T["admin.tags.empty"]</p> }
+        <ul class="space-y-2">
+            @foreach (var t in Model.Tags)
+            {
+                <li class="card flex flex-wrap items-center gap-2 py-2">
+                    <form method="post" asp-page-handler="RenameTag" class="flex flex-1 items-center gap-2">
+                        <input type="hidden" name="id" value="@t.Id" />
+                        <label class="sr-only" for="@("tn-" + t.Id)">@T["admin.genre.name"]</label>
+                        <input id="@("tn-" + t.Id)" name="name" value="@t.Name" class="input max-w-xs" maxlength="60" required />
+                        <button class="btn btn-sm" type="submit">@T["admin.tags.rename"]</button>
+                    </form>
+                    <a class="link text-sm" href="/tags/@t.Slug">@T.Format("tags.books", t.BookCount)</a>
+                    <form method="post" asp-page-handler="DeleteTag">
+                        <input type="hidden" name="id" value="@t.Id" />
+                        <button class="btn btn-sm btn-danger" type="submit" data-confirm="@T["common.confirm"]">@T["common.delete"]</button>
+                    </form>
+                </li>
+            }
+        </ul>
+    </section>
+</div>

@@ -61,6 +61,11 @@ public class ActivityEvent
     public ForumThread? Thread { get; set; }
     /// <summary>Small payload, e.g. the rating or the new status name.</summary>
     public string? Data { get; set; }
+    /// <summary>Markup text of a status post (ActivityType.StatusPost).</summary>
+    public string? Body { get; set; }
+    /// <summary>Set when a status post is written on someone else's profile.</summary>
+    public Guid? RecipientId { get; set; }
+    public AppUser? Recipient { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 

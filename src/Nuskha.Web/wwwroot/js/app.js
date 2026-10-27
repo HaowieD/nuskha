@@ -120,4 +120,20 @@ document.addEventListener('submit', function (e) {
 
   document.addEventListener('DOMContentLoaded', function () { prepareSpoilers(document); });
   document.addEventListener('htmx:afterSwap', function (e) { prepareSpoilers(e.target); });
+
+  // Forms marked data-reset-on-success (the status composer) clear themselves after a successful post.
+  document.addEventListener('htmx:afterRequest', function (e) {
+    var form = e.detail.elt;
+    if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-reset-on-success') || !e.detail.successful) return;
+    form.reset();
+    form.querySelectorAll('[data-md-editor]').forEach(function (ed) { showTab(ed, 'write'); });
+  });
+
+  // The "nothing here yet" placeholder disappears as soon as the first post is inserted.
+  document.addEventListener('htmx:afterSwap', function (e) {
+    if (e.target && e.target.id === 'feed-list') {
+      var empty = document.getElementById('feed-empty');
+      if (empty) empty.remove();
+    }
+  });
 })();

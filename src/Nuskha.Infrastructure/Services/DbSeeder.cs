@@ -56,6 +56,38 @@ public static class DbSeeder
             await db.SaveChangesAsync();
         }
 
+        if (!await db.Genres.AnyAsync())
+        {
+            // Name (Georgian), name (English), URL slug. Staff can rename, add and reorder these in the admin panel.
+            (string Ka, string En, string Slug)[] genres =
+            [
+                ("მხატვრული ლიტერატურა", "Fiction", "fiction"),
+                ("კლასიკა", "Classics", "classics"),
+                ("პოეზია", "Poetry", "poetry"),
+                ("მოთხრობები", "Short stories", "short-stories"),
+                ("დრამა", "Drama", "drama"),
+                ("ფენტეზი", "Fantasy", "fantasy"),
+                ("სამეცნიერო ფანტასტიკა", "Science fiction", "science-fiction"),
+                ("დეტექტივი", "Mystery & crime", "mystery-crime"),
+                ("თრილერი", "Thriller", "thriller"),
+                ("რომანტიკა", "Romance", "romance"),
+                ("ისტორიული რომანი", "Historical fiction", "historical-fiction"),
+                ("ისტორია", "History", "history"),
+                ("ბიოგრაფია და მემუარი", "Biography & memoir", "biography-memoir"),
+                ("ფილოსოფია", "Philosophy", "philosophy"),
+                ("ფსიქოლოგია", "Psychology", "psychology"),
+                ("მეცნიერება", "Science", "science"),
+                ("ხელოვნება და კულტურა", "Art & culture", "art-culture"),
+                ("პიროვნული განვითარება", "Self-help", "self-help"),
+                ("საბავშვო", "Children's", "childrens"),
+                ("ახალგაზრდებისთვის", "Young adult", "young-adult"),
+                ("კომიქსები", "Comics & graphic novels", "comics"),
+                ("იუმორი", "Humor", "humor"),
+            ];
+            db.Genres.AddRange(genres.Select((g, i) => new Genre { Name = g.Ka, NameEn = g.En, Slug = g.Slug, SortOrder = (i + 1) * 10 }));
+            await db.SaveChangesAsync();
+        }
+
         var email = config["Seed:AdminEmail"];
         var password = config["Seed:AdminPassword"];
         if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password))

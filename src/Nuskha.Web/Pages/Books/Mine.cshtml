@@ -1,0 +1,37 @@
+@page "/books/mine"
+@model Nuskha.Web.Pages.Books.MineModel
+@{ ViewData["Title"] = T["submit.mine"]; }
+<div class="mx-auto max-w-3xl space-y-4">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+        <h1 class="text-2xl font-bold">@T["submit.mine"]</h1>
+        <a class="btn btn-primary" href="/books/submit">@T["books.submit"]</a>
+    </div>
+    @if (Model.Items.Count == 0)
+    {
+        <p class="card text-soft">@T["submit.mine.empty"]</p>
+    }
+    else
+    {
+        <ul class="space-y-3">
+            @foreach (var b in Model.Items)
+            {
+                <li class="card space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if (b.Status == BookStatus.Published) { <a class="link font-medium" href="/books/@b.Slug">@b.Title</a> }
+                        else { <span class="font-medium">@b.Title</span> }
+                        <span class="@("chip " + (b.Status == BookStatus.Rejected ? "bg-red-100! text-red-800!" : ""))">@T["bookstatus." + b.Status]</span>
+                        <span class="hint">@b.CreatedAt.ToString("dd.MM.yyyy")</span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(b.ReviewNote) && b.Status != BookStatus.Pending)
+                    {
+                        <div class="md text-soft">@Md.Render(b.ReviewNote)</div>
+                    }
+                    @if (b.Status is BookStatus.Pending or BookStatus.Rejected)
+                    {
+                        <a class="btn btn-sm" href="/books/submit?edit=@b.Id">@(b.Status == BookStatus.Rejected ? T["submit.fixresend"] : T["common.edit"])</a>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</div>

@@ -1,0 +1,84 @@
+@page "/admin/review"
+@model Nuskha.Web.Pages.Admin.ReviewModel
+@{ ViewData["Title"] = T["admin.review"]; }
+<div class="space-y-4">
+    <h1 class="text-2xl font-bold">@T["admin.review"] <span class="text-soft">(@Model.Total)</span></h1>
+
+    <details class="card text-sm">
+        <summary class="cursor-pointer font-medium">@T["submit.standards"]</summary>
+        <ul class="mt-2 list-disc space-y-1 pl-5">
+            <li>@T["submit.standards.1"]</li>
+            <li>@T["submit.standards.2"]</li>
+            <li>@T["submit.standards.3"]</li>
+            <li>@T["submit.standards.4"]</li>
+            <li>@T["submit.standards.5"]</li>
+        </ul>
+    </details>
+
+    @if (Model.Rows.Count == 0)
+    {
+        <p class="card text-soft">@T["review.empty"]</p>
+    }
+
+    @foreach (var r in Model.Rows)
+    {
+        <article class="card space-y-3" aria-labelledby="@("rv-" + r.Id)">
+            <div class="flex gap-4">
+                <div class="w-24 shrink-0">
+                    <div class="cover cover-0">
+                        @if (r.CoverPath is not null) { <img src="/uploads/@r.CoverPath" alt="" /> } else { <span>@r.Title</span> }
+                    </div>
+                </div>
+                <div class="min-w-0 flex-1 space-y-1">
+                    <h2 id="@("rv-" + r.Id)" class="text-lg font-bold">@r.Title</h2>
+                    @if (!string.IsNullOrWhiteSpace(r.TitleEn)) { <p class="text-soft">@r.TitleEn</p> }
+                    <p>@string.Join(", ", r.Authors)</p>
+                    <p class="hint">
+                        @(r.Publisher ?? "—") · @(r.Year?.ToString() ?? "—") · @(r.Pages is int pg ? pg + " " + T["book.pages"] : "—") · ISBN @(r.Isbn ?? "—")
+                    </p>
+                    @if (r.Genres.Count > 0)
+                    {
+                        <p class="flex flex-wrap gap-1">@foreach (var g in r.Genres) { <span class="chip">@g</span> }</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(r.SubmittedTags)) { <p class="hint">@T["tags.title"]: @r.SubmittedTags</p> }
+                    <p class="hint">
+                        @if (r.SubmittedBy is not null) { <text>@T["admin.submittedby"] <a class="link" href="/user/@r.SubmittedBy">@@@r.SubmittedBy</a> · </text> }
+                        @r.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                    </p>
+                </div>
+            </div>
+
+            @if (r.DuplicateTitle is not null)
+            {
+                <p class="card border-red-700 text-sm text-red-700" role="alert">
+                    @T["review.duplicate"]
+                    @if (r.DuplicateSlug is not null) { <a class="link" href="/books/@r.DuplicateSlug">@r.DuplicateTitle</a> } else { <strong>@r.DuplicateTitle</strong> }
+                </p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(r.Description))
+            {
+                <div class="md">@Md.Render(r.Description)</div>
+            }
+
+            <div class="grid gap-3 border-t border-line pt-3 md:grid-cols-2">
+                <form method="post" asp-page-handler="Approve" class="space-y-2">
+                    <input type="hidden" name="id" value="@r.Id" />
+                    <label class="label" for="@("note-" + r.Id)">@T["review.note"]</label>
+                    <input id="@("note-" + r.Id)" name="note" class="input" maxlength="1000" />
+                    <button class="btn btn-primary" type="submit">@T["review.approve"]</button>
+                </form>
+                <form method="post" asp-page-handler="Reject" class="space-y-2">
+                    <input type="hidden" name="id" value="@r.Id" />
+                    <label class="label" for="@("reason-" + r.Id)">@T["review.reason"]</label>
+                    <input id="@("reason-" + r.Id)" name="reason" class="input" maxlength="1000" required />
+                    @if (Model.Errors.TryGetValue(r.Id.ToString(), out var err)) { <p class="field-error" role="alert">@T[err]</p> }
+                    <div class="flex gap-2">
+                        <button class="btn btn-danger" type="submit">@T["review.reject"]</button>
+                        @if (Model.CanEdit) { <a class="btn" href="/admin/books/@r.Id">@T["common.edit"]</a> }
+                    </div>
+                </form>
+            </div>
+        </article>
+    }
+</div>

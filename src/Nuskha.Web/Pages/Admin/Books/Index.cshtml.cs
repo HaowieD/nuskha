@@ -1,6 +1,6 @@
 namespace Nuskha.Web.Pages.Admin.Books;
 
-public class IndexModel(NuskhaDbContext db, UploadService uploads) : AppPageModel
+public class IndexModel(NuskhaDbContext db, UploadService uploads, BookReviewService review) : AppPageModel
 {
     public const int PageSize = 50;
 
@@ -38,6 +38,13 @@ public class IndexModel(NuskhaDbContext db, UploadService uploads) : AppPageMode
 
     public async Task<IActionResult> OnPostStatusAsync(Guid id, BookStatus status, int? filter, string? q)
     {
+        if (!Enum.IsDefined(status) || status == BookStatus.Rejected) return BadRequest(); // rejecting needs a reason: use the review queue
+        // Publishing something that was awaiting review is an approval, so the submitter gets told.
+        if (status == BookStatus.Published && await review.ApproveAsync(id, CurrentUserId!.Value, null))
+        {
+            TempData["Flash"] = "admin.saved";
+            return RedirectToPage(new { status = filter, q });
+        }
         var updated = await db.Books.Where(b => b.Id == id)
             .ExecuteUpdateAsync(s => s.SetProperty(b => b.Status, status).SetProperty(b => b.UpdatedAt, DateTime.UtcNow));
         if (updated == 0) return NotFound();
