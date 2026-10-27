@@ -44,12 +44,23 @@ Usernames are chosen at registration (3–24 chars: `A–Z a–z 0–9 _ -`) and
 
 | Role | Can do |
 |---|---|
-| **User** | everyone: lists, comments, likes, follows, forum, submit books for review |
-| **Editor** | edit/import catalog data, publish/hide books, edit authors |
-| **Moderator** | publish/hide books, handle reports, lock/unlock ordinary accounts, pin/lock forum threads |
+| **User** | everyone: lists, status posts, comments, likes, follows, forum, submit books for review |
+| **Editor** | review submissions, add and edit books, authors, genres and tags, run imports |
+| **Moderator** | review submissions, hide books, handle reports, lock/unlock ordinary accounts, pin/lock forum threads |
 | **Admin** | everything, plus assigning roles and deleting books |
 
 The first admin is created at startup from `Seed__AdminEmail` / `Seed__AdminPassword`. The admin panel refuses to remove the last admin.
+
+## Profiles, posting and text formatting
+
+* A profile has a **banner** and avatar (Settings), an **About** box and an **activity feed**, like AniList. There is no separate comment box: people write **status posts** on their own profile or on someone else's, and likes and replies go on the post.
+* Everything people type (posts, replies, bio, forum, list notes, book descriptions) uses a **Markdown editor** with a toolbar and live preview: `**bold**`, `*italic*`, `~~strike~~`, `||spoiler||`, links, quotes, lists. Text is stored as typed and rendered safely on output: raw HTML is escaped, images are not allowed, only http(s)/mailto/relative links work.
+
+## Books, genres, tags and review
+
+* **Genres** are a fixed, staff-managed list readers choose from when submitting (22 are seeded); **tags** are free-form labels staff attach to books. Browse at `/genres`, `/genres/{slug}`, `/tags/{slug}`; manage at `/admin/taxonomy` (rename, merge, delete).
+* **Staff** add a single book at `/admin/books/new`.
+* **Readers** submit books at `/books/submit`. A submission waits in `/admin/review`, where any editor, moderator or admin can **approve** (it is published and the submitter is notified; their suggested tags become real tags) or **decline with a reason**. Declined and pending submissions appear under *My submissions* (`/books/mine`), where the reader can fix and resubmit. At most 10 submissions can wait at once per reader.
 
 ## Run locally
 
@@ -118,12 +129,13 @@ The two Georgian shops are wired as generic sitemap + JSON-LD sources (`SitemapJ
 
 ## CI
 
-`.github/workflows/ci.yml` builds CSS, builds the solution and runs the tests on every push and pull request.
+`.github/workflows/ci.yml` builds CSS, builds the solution and runs the unit tests on every push and pull request. A second job starts the real app against PostgreSQL and runs `tools/smoke.sh`, which signs in, posts, previews markup, creates books, registers a reader, submits, approves and declines books, and fails on any server error.
 
 ## Known gaps
 
 * Changing the e-mail address of an account is not possible yet.
-* No post/comment editing (delete only), no private messages, no genre/tag taxonomy yet.
+* No post/comment editing (delete only) and no private messages.
+* Uploaded banners and covers are stored as sent (JPG/PNG/WebP up to 2 MB); there is no resizing or cropping yet.
 * Georgian fonts are loaded from Google Fonts; self-host them if that is a privacy concern.
 * Rate limiting covers sign-in/registration and the social endpoints (likes, comments, follows), plus book submission, new threads, settings and reports; saving a list entry and replying in a forum thread are not yet rate limited.
 * The CSP in `Program.cs` assumes no inline scripts or styles; keep it that way when adding UI.
