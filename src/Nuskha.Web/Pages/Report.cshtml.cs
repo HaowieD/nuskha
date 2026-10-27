@@ -5,7 +5,7 @@ namespace Nuskha.Web.Pages;
 public class ReportModel(NuskhaDbContext db, SocialService social) : AppPageModel
 {
     private static readonly TargetType[] Reportable =
-        [TargetType.Comment, TargetType.ForumPost, TargetType.ForumThread, TargetType.Profile, TargetType.Book];
+        [TargetType.Comment, TargetType.ForumPost, TargetType.ForumThread, TargetType.Profile, TargetType.Book, TargetType.Activity];
 
     [BindProperty(SupportsGet = true)] public int Type { get; set; }
     [BindProperty(SupportsGet = true)] public Guid Id { get; set; }

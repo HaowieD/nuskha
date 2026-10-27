@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Nuskha.Domain;
+using Nuskha.Domain.Entities;
 using Nuskha.Infrastructure.Data;
 
 namespace Nuskha.Infrastructure.Services;
