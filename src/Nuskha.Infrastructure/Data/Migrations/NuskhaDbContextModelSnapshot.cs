@@ -132,6 +132,10 @@ namespace Nuskha.Infrastructure.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Body")
+                        .HasMaxLength(3000)
+                        .HasColumnType("character varying(3000)");
+
                     b.Property<Guid?>("BookId")
                         .HasColumnType("uuid");
 
@@ -141,6 +145,9 @@ namespace Nuskha.Infrastructure.Data.Migrations
                     b.Property<string>("Data")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<Guid?>("RecipientId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("ThreadId")
                         .HasColumnType("uuid");
@@ -158,6 +165,8 @@ namespace Nuskha.Infrastructure.Data.Migrations
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("ThreadId");
+
+                    b.HasIndex("RecipientId", "CreatedAt");
 
                     b.HasIndex("UserId", "CreatedAt");
 
@@ -204,9 +213,13 @@ namespace Nuskha.Infrastructure.Data.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<string>("BannerPath")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<string>("Bio")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -380,6 +393,16 @@ namespace Nuskha.Infrastructure.Data.Migrations
                     b.Property<int>("RatingSum")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ReviewNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ReviewedById")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -398,6 +421,10 @@ namespace Nuskha.Infrastructure.Data.Migrations
 
                     b.Property<Guid?>("SubmittedById")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("SubmittedTags")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -436,6 +463,8 @@ namespace Nuskha.Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasFilter("\"ExternalId\" IS NOT NULL");
 
+                    b.HasIndex("Status", "CreatedAt");
+
                     b.HasIndex("Status", "ListCount");
 
                     b.ToTable("Books", (string)null);
@@ -457,6 +486,36 @@ namespace Nuskha.Infrastructure.Data.Migrations
                     b.HasIndex("AuthorId");
 
                     b.ToTable("BookAuthors", (string)null);
+                });
+
+            modelBuilder.Entity("Nuskha.Domain.Entities.BookGenre", b =>
+                {
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("GenreId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("BookId", "GenreId");
+
+                    b.HasIndex("GenreId");
+
+                    b.ToTable("BookGenres", (string)null);
+                });
+
+            modelBuilder.Entity("Nuskha.Domain.Entities.BookTag", b =>
+                {
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TagId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("BookId", "TagId");
+
+                    b.HasIndex("TagId");
+
+                    b.ToTable("BookTags", (string)null);
                 });
 
             modelBuilder.Entity("Nuskha.Domain.Entities.Comment", b =>
@@ -635,6 +694,38 @@ namespace Nuskha.Infrastructure.Data.Migrations
                     b.HasIndex("CategoryId", "IsPinned", "LastPostAt");
 
                     b.ToTable("ForumThreads", (string)null);
+                });
+
+            modelBuilder.Entity("Nuskha.Domain.Entities.Genre", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.HasIndex("SortOrder");
+
+                    b.ToTable("Genres", (string)null);
                 });
 
             modelBuilder.Entity("Nuskha.Domain.Entities.ImportRun", b =>
@@ -829,6 +920,40 @@ namespace Nuskha.Infrastructure.Data.Migrations
                     b.ToTable("Reports", (string)null);
                 });
 
+            modelBuilder.Entity("Nuskha.Domain.Entities.Tag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique();
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("Tags", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Nuskha.Domain.Entities.AppRole", null)
@@ -887,6 +1012,11 @@ namespace Nuskha.Infrastructure.Data.Migrations
                         .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("Nuskha.Domain.Entities.AppUser", "Recipient")
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Nuskha.Domain.Entities.ForumThread", "Thread")
                         .WithMany()
                         .HasForeignKey("ThreadId")
@@ -899,6 +1029,8 @@ namespace Nuskha.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Book");
+
+                    b.Navigation("Recipient");
 
                     b.Navigation("Thread");
 
@@ -930,6 +1062,44 @@ namespace Nuskha.Infrastructure.Data.Migrations
                     b.Navigation("Author");
 
                     b.Navigation("Book");
+                });
+
+            modelBuilder.Entity("Nuskha.Domain.Entities.BookGenre", b =>
+                {
+                    b.HasOne("Nuskha.Domain.Entities.Book", "Book")
+                        .WithMany("Genres")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Nuskha.Domain.Entities.Genre", "Genre")
+                        .WithMany("Books")
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("Genre");
+                });
+
+            modelBuilder.Entity("Nuskha.Domain.Entities.BookTag", b =>
+                {
+                    b.HasOne("Nuskha.Domain.Entities.Book", "Book")
+                        .WithMany("Tags")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Nuskha.Domain.Entities.Tag", "Tag")
+                        .WithMany("Books")
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("Tag");
                 });
 
             modelBuilder.Entity("Nuskha.Domain.Entities.Comment", b =>
@@ -1060,6 +1230,10 @@ namespace Nuskha.Infrastructure.Data.Migrations
             modelBuilder.Entity("Nuskha.Domain.Entities.Book", b =>
                 {
                     b.Navigation("Authors");
+
+                    b.Navigation("Genres");
+
+                    b.Navigation("Tags");
                 });
 
             modelBuilder.Entity("Nuskha.Domain.Entities.ForumCategory", b =>
@@ -1070,6 +1244,16 @@ namespace Nuskha.Infrastructure.Data.Migrations
             modelBuilder.Entity("Nuskha.Domain.Entities.ForumThread", b =>
                 {
                     b.Navigation("Posts");
+                });
+
+            modelBuilder.Entity("Nuskha.Domain.Entities.Genre", b =>
+                {
+                    b.Navigation("Books");
+                });
+
+            modelBuilder.Entity("Nuskha.Domain.Entities.Tag", b =>
+                {
+                    b.Navigation("Books");
                 });
 #pragma warning restore 612, 618
         }
