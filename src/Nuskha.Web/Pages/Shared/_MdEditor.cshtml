@@ -1,0 +1,21 @@
+@model MdEditorModel
+<div class="md-editor" data-md-editor>
+    <div class="md-toolbar" role="toolbar" aria-label="@T["md.toolbar"]">
+        <button type="button" class="md-btn font-bold" data-md="bold" title="@T["md.bold"]" aria-label="@T["md.bold"]">B</button>
+        <button type="button" class="md-btn italic" data-md="italic" title="@T["md.italic"]" aria-label="@T["md.italic"]">I</button>
+        <button type="button" class="md-btn line-through" data-md="strike" title="@T["md.strike"]" aria-label="@T["md.strike"]">S</button>
+        <button type="button" class="md-btn" data-md="link" title="@T["md.link"]" aria-label="@T["md.link"]">🔗</button>
+        <button type="button" class="md-btn" data-md="quote" title="@T["md.quote"]" aria-label="@T["md.quote"]">❝</button>
+        <button type="button" class="md-btn" data-md="list" title="@T["md.list"]" aria-label="@T["md.list"]">•</button>
+        <button type="button" class="md-btn font-mono" data-md="code" title="@T["md.code"]" aria-label="@T["md.code"]">&lt;/&gt;</button>
+        <button type="button" class="md-btn" data-md="spoiler" title="@T["md.spoiler"]" aria-label="@T["md.spoiler"]">👁</button>
+        <span class="ml-auto flex gap-1">
+            <button type="button" class="md-tab" data-md-tab="write" aria-pressed="true">@T["md.write"]</button>
+            <button type="button" class="md-tab" data-md-tab="preview" aria-pressed="false">@T["md.preview"]</button>
+        </span>
+    </div>
+    <textarea id="@Model.Id" name="@Model.Name" rows="@Model.Rows" maxlength="@Model.MaxLength" class="input md-input" required="@Model.Required"
+              placeholder="@Model.Placeholder" aria-describedby="@(Model.Id + "-help")">@Model.Value</textarea>
+    <div class="md md-preview card hidden" data-md-preview aria-live="polite"></div>
+    <p id="@(Model.Id + "-help")" class="hint">@T["md.help"]</p>
+</div>

@@ -87,3 +87,28 @@
   .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }
   .htmx-request { opacity: .75; }
 }
+
+/* ---- Markup editor and rendered user text ---- */
+@layer components {
+  .md-editor { @apply space-y-1; }
+  .md-toolbar { @apply flex flex-wrap items-center gap-1 rounded-lg border border-line bg-paper2 p-1; }
+  .md-btn { @apply inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-md border border-transparent px-2 text-sm hover:border-line hover:bg-card; }
+  .md-tab { @apply cursor-pointer rounded-md px-3 py-1 text-xs font-medium text-soft hover:text-accent; }
+  .md-tab[aria-pressed="true"] { @apply bg-card text-accent; }
+
+  .md { @apply break-words text-sm leading-relaxed; overflow-wrap: anywhere; }
+  .md > * + * { @apply mt-2; }
+  .md a { @apply text-accent underline underline-offset-2; }
+  .md h1, .md h2, .md h3, .md h4 { @apply text-base font-bold; }
+  .md ul { @apply list-disc pl-5; }
+  .md ol { @apply list-decimal pl-5; }
+  .md blockquote { @apply border-l-4 border-line pl-3 text-soft; }
+  .md code { @apply rounded bg-paper2 px-1 py-0.5 font-mono text-[0.85em]; }
+  .md pre { @apply overflow-x-auto rounded-lg bg-paper2 p-3; }
+  .md pre code { @apply bg-transparent p-0; }
+  .md hr { @apply border-line; }
+  .md x-spoiler { @apply cursor-pointer rounded bg-ink px-1 text-transparent transition select-none; }
+  .md x-spoiler a { @apply text-transparent; }
+  .md x-spoiler.revealed { @apply bg-accentsoft text-ink select-text; }
+  .md x-spoiler.revealed a { @apply text-accent; }
+}

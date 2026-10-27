@@ -6,6 +6,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.*" />
     <PackageReference Include="MailKit" Version="4.*" />
+    <PackageReference Include="Markdig" Version="0.*" />
     <ProjectReference Include="..\Nuskha.Infrastructure\Nuskha.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -64,3 +64,6 @@ public class ListEditorModel
 public record FieldErrorModel(Dictionary<string, string> Errors, string Field);
 
 public record AuthorListItem(string Slug, string Name, string? NameEn, int BookCount);
+
+/// <summary>A markup textarea with a formatting toolbar and preview. <see cref="Name"/> is the posted field name.</summary>
+public record MdEditorModel(string Id, string Name, string? Value, int Rows = 4, int MaxLength = 2000, bool Required = false, string? Placeholder = null);

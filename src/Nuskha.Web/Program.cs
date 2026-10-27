@@ -109,6 +109,7 @@ builder.Services.AddRateLimiter(o =>
 
 builder.Services.AddSingleton<ILoc, JsonLoc>();
 builder.Services.AddSingleton<UploadService>();
+builder.Services.AddSingleton<IMarkdown, MarkdownRenderer>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddRazorPages(o =>
