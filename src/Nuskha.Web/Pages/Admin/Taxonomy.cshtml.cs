@@ -100,7 +100,7 @@ public class TaxonomyModel(NuskhaDbContext db, SlugService slugs) : AppPageModel
             var like = "%" + WebExtensions.EscapeLike(Q.Trim()) + "%";
             tags = tags.Where(t => EF.Functions.ILike(t.Name, like));
         }
-        Tags = await tags.Select(t => new TagRow(t.Id, t.Slug, t.Name, t.Books.Count))
-            .OrderByDescending(t => t.BookCount).ThenBy(t => t.Name).Take(200).ToListAsync(ct);
+        Tags = await tags.OrderByDescending(t => t.Books.Count).ThenBy(t => t.Name).Take(200)
+            .Select(t => new TagRow(t.Id, t.Slug, t.Name, t.Books.Count)).ToListAsync(ct);
     }
 }
