@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -11,6 +11,12 @@ namespace Nuskha.Infrastructure.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Profiles no longer have a comment section (people post status updates instead), so remove the old
+            // profile wall comments (TargetType.Profile = 0) together with their likes (Comment = 6) and reports.
+            migrationBuilder.Sql("DELETE FROM \"Reports\" WHERE \"TargetType\" = 6 AND \"TargetId\" IN (SELECT \"Id\" FROM \"Comments\" WHERE \"TargetType\" = 0);");
+            migrationBuilder.Sql("DELETE FROM \"Likes\" WHERE \"TargetType\" = 6 AND \"TargetId\" IN (SELECT \"Id\" FROM \"Comments\" WHERE \"TargetType\" = 0);");
+            migrationBuilder.Sql("DELETE FROM \"Comments\" WHERE \"TargetType\" = 0;");
+
             migrationBuilder.AddColumn<string>(
                 name: "ReviewNote",
                 table: "Books",
